@@ -12,12 +12,10 @@ func show_stats():
 func hide_stats():
 	self.hide()
 
-func update_stats(name, health, max_health, max_mana, mana, war_class):
+func update_stats(name, health, max_health, war_class):
 	$Name.text = name
 	$HealthBar.max_value = max_health
 	$HealthBar.value = health
-	$ManaBar.max_value = max_mana
-	$ManaBar.value = mana
 	$War_Class.text = war_class
 	
 

@@ -445,8 +445,16 @@ func _input(event):
 						#Wait for the animation to finish
 						yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
 						yield(get_tree().create_timer(0.2), "timeout")
+						
+						#We need the current level to see if the character has leveled up
+						var cur_level = Experience.experience[_active_unit.char_name]["level"]
+						
 						_active_unit.add_experience("attack", _units[cursor.clicked])
-
+						
+						#Trying to delay the toggle_player_dark for level up
+						if Experience.experience[_active_unit.char_name]["level"] > cur_level:
+							yield(get_tree().create_timer(2.0), "timeout")
+						
 						turn_finished(_active_unit)
 					
 #		
@@ -622,8 +630,7 @@ func select_player(cell):
 	# Show unit stats
 	unit_stats.show_stats()
 	unit_stats.update_stats(_active_unit.char_name, _active_unit.health,
-	_active_unit.max_health, _active_unit.max_mana, _active_unit.mana, 
-	_active_unit.war_class)
+	_active_unit.max_health, _active_unit.war_class)
 	
 	
 	
@@ -808,6 +815,7 @@ func enemy_attack_selected(type = null):
 	
 func _on_Level_Up(unit):
 	level_up_stats.level_up(unit)
+	
 	
 
 ## Helper Functions ##

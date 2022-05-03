@@ -7,8 +7,8 @@ onready var tween = $Tween
 func _ready():
 	self.visible = false
 	$RichTextLabel.text = get_parent().get_parent().char_name
-	$TextureRect/TextureProgress.max_value = get_parent().get_parent().max_health
-	$TextureRect/TextureProgress.value = get_parent().get_parent().health
+	$TextureRect/TextureProgress.max_value = Experience.experience[get_parent().get_parent().char_name]["hp"]
+	$TextureRect/TextureProgress.value = Experience.experience[get_parent().get_parent().char_name]["hp"]
 
 	
 	# Replace with function body.

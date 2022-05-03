@@ -29,16 +29,15 @@ var rng = RandomNumberGenerator.new()
 onready var effects = $effects
 
 #Character Data
-export var health := 100
-export var max_health : int = 100
-export var mana := 100
-export var max_mana := 100
-export var war_class : String
 export var char_name : String
-export var move_range := 6
+
+onready var max_health : int = Experience.experience[char_name]["hp"]
+onready var health : int = max_health
+export var war_class : String
+onready var move_range : int = Experience.experience[char_name]["move"]
 export var notice_range := 6
 export var move_speed := 600.0
-export var attack_stat := 10
+onready var attack_stat : int = Experience.experience[char_name]["str"]
 export var playable = true
 export var player_char : bool
 
@@ -84,12 +83,15 @@ func add_experience(action, on : Enemy = null):
 	
 	if Experience.experience[self.char_name]["experience"] > 99:
 		level_up()
+
 	
 func level_up():
+	effect_triggered("Level Up")
 	Experience.experience[self.char_name]["level"] += 1
 	Experience.experience[self.char_name]["experience"] = 0
 	Experience.save()
 	self.connect("level_up", get_parent(), "_on_Level_Up",[self])
+	yield(get_tree().create_timer(1.2), "timeout")
 	emit_signal("level_up")
 	
 
@@ -146,8 +148,10 @@ func _on_ready():
 	$Axeman.visible = false
 	animation_state.start('Idle')
 	effects.visible = false
+	
+	#This is momentarily keeping the experience from getting too high
 	Experience.save()
-
+	Experience.load()
 	
 	self.cell = grid.calculate_grid_position(position)
 	self.position = grid.calculate_map_position(cell)
@@ -248,6 +252,14 @@ func effect_triggered(effect = null):
 				self.health = self.max_health
 			self.effects.visible = true
 			self.effects.play("Health Potion")
+			self.effects.playing = true
+			yield(get_tree().create_timer(1.2), "timeout")
+			self.effects.playing = false
+			self.effects.visible = false
+			
+		"Level Up":
+			self.effects.visible = true
+			self.effects.play("Level Up")
 			self.effects.playing = true
 			yield(get_tree().create_timer(1.2), "timeout")
 			self.effects.playing = false
