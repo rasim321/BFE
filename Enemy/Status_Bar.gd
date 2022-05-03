@@ -9,16 +9,14 @@ func _ready():
 	$RichTextLabel.text = get_parent().get_parent().char_name
 	$TextureRect/TextureProgress.max_value = get_parent().get_parent().max_health
 	$TextureRect/TextureProgress.value = get_parent().get_parent().health
-	
-	print("max_health", get_parent().get_parent().max_health)
-	print("health", get_parent().get_parent().health)
+
 	
 	# Replace with function body.
 
 func tween_health_status(amount):
 	self.visible = true
 	tween.interpolate_property($TextureRect/TextureProgress, "value",
-	get_parent().get_parent().health - amount, get_parent().get_parent().health, 0.3)
+	get_parent().get_parent().health, get_parent().get_parent().health + amount, 0.3)
 	tween.start()
 	print("max_health", get_parent().get_parent().max_health)
 	print("health", get_parent().get_parent().health)

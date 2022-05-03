@@ -23,7 +23,7 @@ func _on_ready():
 #	set_process(false)
 	rng.randomize()
 	effects.visible = false
-
+	Experience.save()
 	
 	self.cell = grid.calculate_grid_position(position)
 	self.position = grid.calculate_map_position(cell)

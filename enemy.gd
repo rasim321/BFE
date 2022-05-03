@@ -55,9 +55,50 @@ var defense = {"name":"common_defender", "dodge":"common_dodge"}
 onready var items = $"/root/GlobalInventory".inventory
 onready var item_action = $Battle_Node/Item_Menu/Item_Action_Bg
 
+#Experience
+
+
 #var axe_comon_attack = {"name":"axeman_common_attack", "speed": 1.8,
 #"damage": rng.randi_range(34,42)}
 
+func add_experience(action, on : Enemy = null):
+	
+	var new_exp = 0
+	
+	Experience.load()
+	match action:
+		"attack":
+			new_exp = 15 * Experience.experience[on.char_name]["level"] - Experience.experience[self.char_name]["level"]
+			Experience.experience[self.char_name]["experience"] += new_exp
+		"item_use":
+			new_exp = 10
+			Experience.experience[self.char_name]["experience"] += new_exp
+		"kill":
+			pass
+			new_exp = 30 * Experience.experience[on.char_name]["level"] - Experience.experience[self.char_name]["level"]
+			Experience.experience[self.char_name]["experience"] += new_exp
+	
+	Experience.save()
+	emit_signal("add_experience", self, new_exp)
+
+	
+	if Experience.experience[self.char_name]["experience"] > 99:
+		level_up()
+	
+func level_up():
+	Experience.experience[self.char_name]["level"] += 1
+	Experience.experience[self.char_name]["experience"] = 0
+	Experience.save()
+	self.connect("level_up", get_parent(), "_on_Level_Up",[self])
+	emit_signal("level_up")
+	
+
+	
+	
+
+
+	
+			
 
 #Signals
 #signal to GameTest board when wait is selected from the battle menu
@@ -65,6 +106,8 @@ signal wait_selected
 signal attack_selected
 signal item_selected
 signal item_engaged
+signal add_experience
+signal level_up
 #Signal connections
 
 
@@ -103,6 +146,7 @@ func _on_ready():
 	$Axeman.visible = false
 	animation_state.start('Idle')
 	effects.visible = false
+	Experience.save()
 
 	
 	self.cell = grid.calculate_grid_position(position)
@@ -203,10 +247,15 @@ func effect_triggered(effect = null):
 			else:
 				self.health = self.max_health
 			self.effects.visible = true
+			self.effects.play("Health Potion")
 			self.effects.playing = true
 			yield(get_tree().create_timer(1.2), "timeout")
 			self.effects.playing = false
 			self.effects.visible = false
+			
+
+
+			
 			
 			
 

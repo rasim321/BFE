@@ -18,6 +18,10 @@ onready var tween = $Tween
 onready var Background = $Background
 onready var Objects = $Objects
 
+#Experience
+onready var exp_stats = $HUD/Exp_Stats
+onready var level_up_stats = $HUD/Level_Up
+
 #Items
 onready var items = $"/root/GlobalInventory".inventory 
 onready var items_func = $"/root/GlobalInventory" 
@@ -60,13 +64,13 @@ func _ready():
 	_refresh_playable()
 	
 #	_refresh_enemies()
-	
 
 	#Connect the item signals from all units
 	for child in get_children():
 		var unit := child as Enemy
 		if unit:
 			unit.connect("item_engaged", self, "_on_Item_engaged")
+
 
 
 	#Get all the obstacles in the map
@@ -155,7 +159,7 @@ func _process(delta):
 		_unit_overlay.draw(_attack_cells,1)
 	
 #	item use grid
-	if item_use_active == true:
+	if item_use_active == true and item_action_type == "use":
 		selection_active = false
 		_unit_overlay.visible = true
 		update()
@@ -431,10 +435,18 @@ func _input(event):
 						$HUD/Battle_Scene.battle_start(_units[path_begin].common_attack,
 						 _units[cursor.clicked])
 						
-
 						#Once attack is successful we finalize the movement
 						finalize_movement(astar_path.path[-1])
-						yield(get_tree().create_timer(2), "timeout")
+#						yield(get_tree().create_timer(2), "timeout")
+						
+						## Handing Exp
+						#Connect the add_experience signal
+						_active_unit.connect("add_experience", self, "_on_add_experience")
+						#Wait for the animation to finish
+						yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
+						yield(get_tree().create_timer(0.2), "timeout")
+						_active_unit.add_experience("attack", _units[cursor.clicked])
+
 						turn_finished(_active_unit)
 					
 #		
@@ -450,23 +462,49 @@ func _input(event):
 		
 	#Use item
 	if item_use_active == true:
-		if Input.is_action_just_pressed("ui_accept"):
-			if (_item_use_cells as Array).has(cursor.clicked):
-				if _all_playable_units.has(cursor.clicked):
-					if _all_playable_units[cursor.clicked].player_char == true:
-						
-						#Engage item
-						engage_item(_active_unit, _all_playable_units[cursor.clicked], staged_item_current,
-						staged_position_current, item_action_type)
-						
-						
-						#Cancel the item range visual
-						_unit_overlay.visible = false
-						
-						yield(get_tree().create_timer(1.3), "timeout")
-						unit_stats.hide_stats()
-						turn_finished(_active_unit)
 		
+		# If discard item was clicked
+		if item_action_type == "discard":
+			# Wait for the discard confirmation signal
+			
+			#The signal's value from item_menu gets stored in the discard_action variable
+			var discard_action = yield(_active_unit.item_menu, "item_discarded")
+			#If true, we discard the item using the engage item function
+			if discard_action == true:
+				print("Done")
+				engage_item(_active_unit, _active_unit, staged_item_current,
+							staged_position_current, item_action_type)
+				_unit_overlay.visible = false
+				unit_stats.hide_stats()
+				turn_finished(_active_unit)
+			#If false, nothing happens, the confirmation window is closed.
+			else:
+				item_use_active = false
+				_active_unit.item_menu.visible = false
+				_active_unit.battle_menu.visible = true
+				
+		
+		if Input.is_action_just_pressed("ui_accept"):
+			#If use item was clicked
+			if item_action_type == "use":
+				if (_item_use_cells as Array).has(cursor.clicked):
+					if _all_playable_units.has(cursor.clicked):
+						if _all_playable_units[cursor.clicked].player_char == true:
+							
+							#Engage item
+							engage_item(_active_unit, _all_playable_units[cursor.clicked], staged_item_current,
+							staged_position_current, item_action_type)
+							
+							
+							#Cancel the item range visual
+							_unit_overlay.visible = false
+							
+							yield(get_tree().create_timer(1.3), "timeout")
+							unit_stats.hide_stats()
+							turn_finished(_active_unit)
+							
+			
+			
 		#Cancelling the item use selection
 		if Input.is_action_just_pressed("ui_cancel"):
 			
@@ -484,11 +522,13 @@ func _input(event):
 				selection_active = false
 				player_choice = true
 				item_selection_active = false
-				
+
+
+
 
 func engage_item(user, used_on, item, item_position, action_type):
 	
-	items_func.item_setter(user.char_name, item, item_position, -1)
+	
 
 	match action_type:
 		"use":
@@ -497,12 +537,18 @@ func engage_item(user, used_on, item, item_position, action_type):
 				"Health Potion":
 					used_on.effect_triggered(item)
 					item_use_active = false
+					items_func.item_setter(user.char_name, item, item_position, -1)
 
 					#Refresh the item list in the UI
 					user.get_node("Battle_Node/Item_Menu").item_refresh()
-
 					
-	pass
+		"discard":
+			item_use_active = false
+			item_selection_active = false
+			items[user.char_name]["items"].pop_at(item_position)
+			items[user.char_name]["quantity"].pop_at(item_position)
+			user.get_node("Battle_Node/Item_Menu").item_refresh()
+
 
 func flood_fill(cell, max_distance, for_enemy = false):
 	
@@ -760,7 +806,9 @@ func enemy_attack_selected(type = null):
 #	print("attack message received")
 	pass
 	
-
+func _on_Level_Up(unit):
+	level_up_stats.level_up(unit)
+	
 
 ## Helper Functions ##
 
@@ -877,7 +925,7 @@ var staged_position_current : int # 0
 var item_action_type : String # "use"
 
 func _on_Item_engaged(staged_item, staged_position, action_type):
-
+	
 	item_use_active = true
 	_item_use_cells = _active_unit.attack_range(astar_path.path[-1])
 	_item_use_cells.append(astar_path.path[-1])
@@ -886,6 +934,9 @@ func _on_Item_engaged(staged_item, staged_position, action_type):
 	item_action_type = action_type
 	finalize_movement(astar_path.path[-1])
 
+func _on_add_experience(unit, amount):
+	exp_stats.update_exp(unit, amount)
+	
 ## Notes:
 
 # player choice = player choice is when the choice menu is active for the player
