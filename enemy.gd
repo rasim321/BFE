@@ -23,6 +23,7 @@ onready var curve = Curve2D
 onready var tile_background = get_parent().get_node("Background")
 onready var tile_objects = get_parent().get_node("Objects")
 onready var tile_attributes = $"/root/TileAttributes".tile_attributes
+onready var tile_platforms = $"/root/TileAttributes".tile_platforms
 #Random Number generator
 var rng = RandomNumberGenerator.new()
 
@@ -37,22 +38,27 @@ export var war_class : String
 onready var move_range : int = Experience.experience[char_name]["move"]
 export var notice_range := 6
 export var move_speed := 600.0
-onready var attack_stat : int = Experience.experience[char_name]["str"]
 export var playable = true
 export var player_char : bool
-
-
-#Attacks
-var common_attack = {"name":"goon_common_attack", "speed": 1.4,
-"damage": int(rand_range(26,34)), "position": Vector2(390,308),
-"hit_chance": 0.8}
-
-#Defense
-var defense = {"name":"common_defender", "dodge":"common_dodge"}
 
 #Items
 onready var items = $"/root/GlobalInventory".inventory
 onready var item_action = $Battle_Node/Item_Menu/Item_Action_Bg
+
+
+#Attacks
+onready var common_attack = {"name":"goon_common_attack", "speed": 1.4,
+"damage": 
+ int(rand_range(round(Experience.experience[self.char_name]["str"]*0.9),
+round(Experience.experience[char_name]["str"]*1.1))), "position": Vector2(390,308),
+"hit_chance": 0.85,
+"weapon_damage" : items[char_name]["equipped"].might}
+
+
+#"weapon_damage" : items[char_name]["equipped"].might
+#Defense
+var defense = {"name":"common_defender", "dodge":"common_dodge"}
+
 
 #Experience
 
@@ -95,12 +101,6 @@ func level_up():
 	emit_signal("level_up")
 	
 
-	
-	
-
-
-	
-			
 
 #Signals
 #signal to GameTest board when wait is selected from the battle menu
@@ -210,34 +210,46 @@ func attack_range(cell, type = null):
 			att_range.append(cell+diag)
 		return att_range
 
-func get_tile_stats():
+func get_tile_stats(tile = self.cell):
 	var plus_avoid : int
 	var plus_defense : int
+	var platform : Array
+	
 	
 	var forests = tile_objects.get_used_cells_by_id(1)
-	for k in tile_objects.get_used_cells_by_id(2):
-		forests.append(k)
-	
-	var trees = tile_objects.get_used_cells_by_id(0)
+	var trees = tile_objects.get_used_cells_by_id(2)
+	var cliffs = tile_objects.get_used_cells_by_id(3)
 	
 	var plains = tile_background.get_used_cells_by_id(0)
-	var rivers = tile_background.get_used_cells_by_id(1)
+	var waters = tile_background.get_used_cells_by_id(1)
+	for water_tiles in tile_background.get_used_cells_by_id(2):
+		waters.append(water_tiles)
+	
+	#remove the forests, trees, and cliffs from plains
 	for i in forests:
 		plains.erase(i)
 	for j in trees:
 		plains.erase(j)
+	for k in cliffs:
+		plains.erase(k)
 	
-	if self.cell in forests:
+	if tile in forests:
 		plus_defense = tile_attributes["Forest"][0]
 		plus_avoid = tile_attributes["Forest"][1]
-	elif self.cell in plains:
+		platform = tile_platforms["Forest"]
+	
+		
+	elif tile in plains:
 		plus_defense = tile_attributes["Plain"][0]
 		plus_avoid = tile_attributes["Plain"][1]
+		platform = tile_platforms["Plain"]
+
 	else:
 		plus_defense = tile_attributes["Plain"][0]
 		plus_avoid = tile_attributes["Plain"][1]
+		platform = tile_platforms["Plain"]
 
-	return [plus_defense, plus_avoid]
+	return [plus_defense, plus_avoid, platform]
 		
 
 func effect_triggered(effect = null):

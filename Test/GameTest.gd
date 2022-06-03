@@ -273,17 +273,17 @@ func enemy_action():
 				cursor.position = Vector2((target[0].position.x - (grid.cell_size.x/2)),(target[0].position.y - (grid.cell_size.y/2))) 
 				yield(get_tree().create_timer(1), "timeout")
 				
-				
+				#Finalize Movement
+				finalize_movement(astar_path.path[-1])
 		#		Fight the Player Unit chosen at random
 				#Battle Stats - offender, defender
 				$HUD/Battle_Scene.battle_stats(m_unit,target[0])
-				#Battle_Start - offender.attack, defender
+				#Battle_Start - offender.attack, defender, offender, offender_cell
 				$HUD/Battle_Scene.battle_start(m_unit.common_attack,
-				 target[0])
+				 target[0], m_unit)
 				yield(get_tree().create_timer(4), "timeout")
 		#					#Once attack is successful we finalize the movement
 				deselect_player()
-				finalize_movement(astar_path.path[-1])
 				turn_finished(m_unit)
 		else:
 			var approachable_units = []
@@ -316,7 +316,7 @@ func generate_kill_dict(unit, war_class = null):
 
 	match war_class:
 		#For general one cell attack units:
-		"swordsman", "axeman":
+		"swordsman", "axeman", "spearman":
 			#We get the unit's move cells plus one offset for the attack range
 			_walkable_cells = get_walkable_cells(unit, 1)
 			#where we store the cells from which to attack
@@ -428,15 +428,21 @@ func _input(event):
 				if _units.has(cursor.clicked):
 					if _units[cursor.clicked].playable == false:
 						
+						#Launch the comparison UI screen
+						
+
+						#We finalize the movement so tile stats gets updated
+						
 					
 						#Battle Stats - offender, defender
 						$HUD/Battle_Scene.battle_stats(_units[path_begin],_units[cursor.clicked])
-						#Battle_Start - offender.attack, defender
-						$HUD/Battle_Scene.battle_start(_units[path_begin].common_attack,
-						 _units[cursor.clicked])
 						
-						#Once attack is successful we finalize the movement
+						#Battle_Start - offender.attack, defender, offender
+						$HUD/Battle_Scene.battle_start(_units[path_begin].common_attack,
+						 _units[cursor.clicked], _units[path_begin])
+						
 						finalize_movement(astar_path.path[-1])
+						
 #						yield(get_tree().create_timer(2), "timeout")
 						
 						## Handing Exp
@@ -456,8 +462,8 @@ func _input(event):
 							yield(get_tree().create_timer(2.0), "timeout")
 						
 						turn_finished(_active_unit)
-					
-#		
+
+
 		#Holdover code for cancelling attack and sending player unit back to initial starting point
 		#Player can cancel an attack
 		if Input.is_action_just_pressed("ui_cancel"):
@@ -471,6 +477,7 @@ func _input(event):
 	#Use item
 	if item_use_active == true:
 		
+
 		# If discard item was clicked
 		if item_action_type == "discard":
 			# Wait for the discard confirmation signal
@@ -478,19 +485,28 @@ func _input(event):
 			#The signal's value from item_menu gets stored in the discard_action variable
 			var discard_action = yield(_active_unit.item_menu, "item_discarded")
 			#If true, we discard the item using the engage item function
-			if discard_action == true:
-				print("Done")
+			
+			#we need to use double flags here or the code block runs multiple times
+			
+			if discard_action == true and item_use_active == true:
+				#turn of item_use_active
+				item_use_active = false
 				engage_item(_active_unit, _active_unit, staged_item_current,
 							staged_position_current, item_action_type)
 				_unit_overlay.visible = false
 				unit_stats.hide_stats()
 				turn_finished(_active_unit)
-			#If false, nothing happens, the confirmation window is closed.
-			else:
+			
+			#Once again, code block runs multiple times here if double flags not used
+			elif discard_action == false and item_use_active == true:
+
 				item_use_active = false
 				_active_unit.item_menu.visible = false
 				_active_unit.battle_menu.visible = true
 				
+			#Return discard action to false	after loop finishes
+			discard_action = false
+					
 		
 		if Input.is_action_just_pressed("ui_accept"):
 			#If use item was clicked
@@ -717,8 +733,7 @@ func select_enemy_unit(cell : Vector2)-> void:
 	# Show unit stats
 	unit_stats.show_stats()
 	unit_stats.update_stats(_active_unit.char_name, _active_unit.health,
-	_active_unit.max_health, _active_unit.max_mana, _active_unit.mana, 
-	_active_unit.war_class)
+	_active_unit.max_health, _active_unit.war_class)
 	
 
 func _move_enemy_unit(new_cell: Vector2) -> void:
@@ -777,7 +792,6 @@ func turn_finished(unit):
 	turn_taken.append(unit)
 	_active_unit.item_menu.visible = false
 	toggle_player_dark(unit)
-	
 	#This is a new edition, might have to remove
 	_reinitialize()
 

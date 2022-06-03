@@ -15,33 +15,41 @@ var clicked = Vector2(0,0)
 
 func get_tile_hud(coord):
 	var forests = tile_objects.get_used_cells_by_id(1)
-	for k in tile_objects.get_used_cells_by_id(2):
-		forests.append(k)
-	
-	var trees = tile_objects.get_used_cells_by_id(0)
+
+	var trees = tile_objects.get_used_cells_by_id(2)
+	var cliffs = tile_objects.get_used_cells_by_id(3)
 	
 	var plains = tile_background.get_used_cells_by_id(0)
 	var waters = tile_background.get_used_cells_by_id(1)
+	for water_tiles in tile_background.get_used_cells_by_id(2):
+		waters.append(water_tiles)
 	
+	#remove the forests, trees, and cliffs from plains
 	for i in forests:
 		plains.erase(i)
 	for j in trees:
 		plains.erase(j)
+	for k in cliffs:
+		plains.erase(k)
 	
 	if coord in forests:
 		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Forest"
 		tile_stats.get_node("Tile_HUD/Avoid_Number").text = str(tile_attributes["Forest"][1])
 		tile_stats.get_node("Tile_HUD/Defense_Number").text = str(tile_attributes["Forest"][0])
 	elif coord in waters:
-		tile_stats.get_node("Tile_HUD/Tile_Type").text = "River"
-		tile_stats.get_node("Tile_HUD/Avoid_Number").text = str(tile_attributes["River"][1])
-		tile_stats.get_node("Tile_HUD/Defense_Number").text = str(tile_attributes["River"][0])
+		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Water"
+		tile_stats.get_node("Tile_HUD/Avoid_Number").text = "-"
+		tile_stats.get_node("Tile_HUD/Defense_Number").text = "-"
 	elif coord in plains:
 		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Plain"
 		tile_stats.get_node("Tile_HUD/Avoid_Number").text = str(tile_attributes["Plain"][1])
 		tile_stats.get_node("Tile_HUD/Defense_Number").text = str(tile_attributes["Plain"][0])
 	elif coord in trees:
 		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Tree"
+		tile_stats.get_node("Tile_HUD/Avoid_Number").text = "-"
+		tile_stats.get_node("Tile_HUD/Defense_Number").text = "-"
+	elif coord in cliffs:
+		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Cliff"
 		tile_stats.get_node("Tile_HUD/Avoid_Number").text = "-"
 		tile_stats.get_node("Tile_HUD/Defense_Number").text = "-"
 	else:

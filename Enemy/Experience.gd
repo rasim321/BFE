@@ -7,7 +7,7 @@ var experience = {
 		"level" : 2,
 		"experience" : 90,
 		"hp" : 100,
-		"str" : 10,
+		"str" : 14,
 		"mag" : 12,
 		"skill" : 10,
 		"speed" : 10,
@@ -20,7 +20,7 @@ var experience = {
 		"level" : 2,
 		"experience" : 0,
 		"hp" : 90,
-		"str" : 8,
+		"str" : 12,
 		"mag" : 2,
 		"skill" : 10,
 		"speed" : 12,
@@ -33,7 +33,7 @@ var experience = {
 		"level" : 2,
 		"experience" : 0,
 		"hp" : 150,
-		"str" : 12,
+		"str" : 16,
 		"mag" : 1,
 		"skill" : 6,
 		"speed" : 8,
@@ -80,6 +80,19 @@ var experience = {
 		"def" : 10, 
 		"res": 6,
 		"notice" : 6
+	},
+	"Spiro" : {
+		"level" : 3,
+		"experience" : 0,
+		"hp" : 110,
+		"str" : 13,
+		"mag" : 4,
+		"skill" : 12,
+		"speed" : 14,
+		"move" : 5,
+		"def" : 12, 
+		"res": 8,
+		"notice" : 5
 	}
 }
 
@@ -137,6 +150,16 @@ var growth = {
 	"Arlo" : {
 		"hp" : 0.5,
 		"str" : 0.5,
+		"mag" : 0.5,
+		"skill" : 0.5,
+		"speed" : 0.5,
+		"move" : 0.5,
+		"def" : 0.5, 
+		"res": 0.5,
+	},
+	"Spiro" : {
+		"hp" : 0.8,
+		"str" : 0.4,
 		"mag" : 0.5,
 		"skill" : 0.5,
 		"speed" : 0.5,

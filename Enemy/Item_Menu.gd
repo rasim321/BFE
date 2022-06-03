@@ -65,6 +65,8 @@ func _ready():
 			# sends the type and name of the consumable item
 			item_instance.connect("pressed", self,"_send_item_signal",
 			 [my_items["items"][i].type, my_items["items"][i].name, item_positions[i]])
+		
+		equipped_logo()
 	
 	
 
@@ -112,6 +114,8 @@ func item_refresh():
 				# sends the type and name of the consumable item
 				item_instance.connect("pressed", self,"_send_item_signal",
 				 [my_items["items"][i].type, my_items["items"][i].name, item_positions[i]])
+		
+		equipped_logo()
 
 
 func _send_item_signal(type, name, position):
@@ -126,7 +130,7 @@ func _send_item_signal(type, name, position):
 			item_action.visible = true
 			weapon_action.visible = false
 			
-		"Weapon":
+		"Sword", "Axe", "Bow", "Spear", "Spell":
 			weapon_action.visible = true
 			item_action.visible = false
 	
@@ -149,7 +153,7 @@ func _on_Use_pressed():
 ## These functions handle the item discard system
 
 func discard_confirm(value):
-	emit_signal("item_discarded", value)
+	call_deferred("emit_signal", "item_discarded", value)
 	
 func _on_Discard_pressed():
 	item_action.visible = false
@@ -159,6 +163,7 @@ func _on_Discard_pressed():
 func _on_Yes_pressed():
 #	function will emit signal item_discarded with true
 	discard_confirm(true)
+	discard.visible = false
 	pass # Replace with function body.
 
 func _on_No_pressed():
@@ -167,3 +172,21 @@ func _on_No_pressed():
 	discard.visible = false
 	discard_confirm(false)
 	pass # Replace with function body.
+
+
+func _on_Equip_pressed():
+	#Assign the equipped data from the staged_position indexing the items
+	items[get_parent().get_parent().char_name]["equipped"] = \
+	items[get_parent().get_parent().char_name]["items"][staged_position]
+	
+	#Change the eq_position to new equipped weapon
+	items[get_parent().get_parent().char_name]["eq_position"] = staged_position
+	
+	weapon_action.visible = false
+	equipped_logo()
+	pass # Replace with function body.
+
+
+func equipped_logo():
+	$Item_Bg/Equipped_Logo.rect_position.y = (items[get_parent().get_parent().char_name]["eq_position"] * 52)
+	pass

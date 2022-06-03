@@ -13,7 +13,7 @@ func _ready():
 	pass # Replace with function body.
 
 func update_exp(unit, amount):
-	self.visible = true
+	fade_in_out("in", 0.2)
 	level_num.text = "Level: " + str(Experience.experience[unit.char_name]["level"])
 	char_name.text = unit.char_name
 	
@@ -21,9 +21,30 @@ func update_exp(unit, amount):
 		 Experience.experience[unit.char_name]["experience"] - amount, Experience.experience[unit.char_name]["experience"], 0.3)
 	tween.start()
 	yield(get_tree().create_timer(0.8), "timeout")
-	self.visible = false
+	fade_in_out("out", 0.2)
 	
 	
+func fade_in_out(type : String, duration: float):
+	
+	if type == "in":
+		self.modulate = Color(1,1,1,0)
+		self.visible = true
+		tween.interpolate_property(
+		self, "modulate", 
+		  Color(1, 1, 1, 0), Color(1, 1, 1, 1), duration, 
+		  Tween.TRANS_LINEAR, Tween.EASE_IN)
+		tween.start()
+
+	elif type == "out":
+		tween.interpolate_property(
+		self, "modulate", 
+		  Color(1, 1, 1, 1), Color(1, 1, 1, 0), duration, 
+		  Tween.TRANS_LINEAR, Tween.EASE_IN)
+
+		tween.start()
+		yield(tween, "tween_all_completed")
+		self.visible = false
+		
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

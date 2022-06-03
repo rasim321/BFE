@@ -3,7 +3,8 @@ extends Control
 #Animations
 onready var offender_sprite = $Offender_Sprite #the attacking sprite that's animated
 onready var defender_sprite = $Defender_Sprite
-onready var battle_platform = $grass_platform
+onready var left_battle_platform = $left_platform
+onready var right_battle_platform = $right_platform
 
 #Stats
 onready var offender_name = $Battle_Panel/Offender_Name_Text
@@ -36,7 +37,7 @@ func _ready():
 
 
 
-func battle_start(attack: Dictionary, defender: Enemy):
+func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 	
 	$Missed_Label.visible = false
 #	Attack is an animation sprite stored in "Offender_Sprite"
@@ -47,10 +48,32 @@ func battle_start(attack: Dictionary, defender: Enemy):
 #	in the "Defender_Sprite" node. The defense attribute points to which defender
 #	animation will be played 
 	
-	var avoid = defender.get_tile_stats()[1]/100
-	var defense = defender.get_tile_stats()[0]/100
+	#Getting the defender_tile_stats into a variable: defense, avoid, platform
+	var defender_tile_stats = defender.get_tile_stats()
 	
-	var hit_chance = attack['hit_chance'] - avoid
+	var tile_avoid = defender_tile_stats[1]/100
+	var char_avoid = Experience.experience[defender.char_name]["speed"]/100
+	var tile_defense = defender_tile_stats[0]/100
+	
+	#For Archers, the platforms will be slightly apart
+	if attacker.war_class == "archer":
+		#The first texture is the defender's (on the left)
+		#The second texture is the attacker's (on the right)
+		left_battle_platform.texture = defender_tile_stats[2][0].texture
+		left_battle_platform.rect_position.x -= 20
+		
+		#For the attacker, we are feeding the tile texture from the gameboard -- from the last cell
+		right_battle_platform.texture = attacker.get_tile_stats(get_parent().get_parent().astar_path.path[-1])[2][1].texture
+		right_battle_platform.rect_position.x += 20
+	else:
+		
+		left_battle_platform.texture = defender_tile_stats[2][0].texture
+		left_battle_platform.rect_position.x = 194
+		#For the attacker, we are feeding the tile texture from the gameboard -- from the last cell
+		right_battle_platform.texture = attacker.get_tile_stats(get_parent().get_parent().astar_path.path[-1])[2][1].texture
+		right_battle_platform.rect_position.x = 527
+	
+	var hit_chance = attack['hit_chance'] - (tile_avoid + char_avoid)
 	var rand_roll = randf()
 	
 	
@@ -70,16 +93,22 @@ func battle_start(attack: Dictionary, defender: Enemy):
 		defender_sprite.modulate = Color(1,1,1)
 		for i in [0,5,-10,15,-5,+10,-15,0]:
 			yield(get_tree().create_timer(0.005), "timeout")
-			battle_platform.rect_position.x += i
-			battle_platform.rect_position.y += i
+			left_battle_platform.rect_position.x += i
+			left_battle_platform.rect_position.y += i
+			right_battle_platform.rect_position.x += i
+			right_battle_platform.rect_position.y += i
 			defender_sprite.position.x += i
 			defender_sprite.position.y += i
 		
 		#Get the current damage and store it
 		#Subtract the defense amount which is calculated from several factors
 		#(currently only tile)
-		current_damage = attack["damage"] * (1 - (defense/100)) #so here it's (1-0.10)
+		current_damage = (attack["damage"] + attack["weapon_damage"]) - \
+		(Experience.experience[defender.char_name]["def"] + (tile_defense/2)) 
 		
+		print( attack["damage"])
+		print("minus")
+		print(Experience.experience[defender.char_name]["def"]/2)
 		
 		tween.interpolate_property($Battle_Panel/Defender_Health, "value",
 		 defender_health.value, defender_health.value-current_damage, 0.3)
