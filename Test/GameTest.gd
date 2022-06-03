@@ -40,6 +40,7 @@ var selection_active = false
 var attack_active = false
 var player_choice = false
 var player_phase = true
+var comp_stats_active = false
 
 # An array for all the obstacles
 var _obstacles = PoolVector2Array()
@@ -429,42 +430,15 @@ func _input(event):
 					if _units[cursor.clicked].playable == false:
 						
 						#Launch the comparison UI screen
+						$HUD/Comp_Stats.comp_stats(_units[path_begin], _units[cursor.clicked])
 						
-
-						#We finalize the movement so tile stats gets updated
-						
-					
-						#Battle Stats - offender, defender
-						$HUD/Battle_Scene.battle_stats(_units[path_begin],_units[cursor.clicked])
-						
-						#Battle_Start - offender.attack, defender, offender
-						$HUD/Battle_Scene.battle_start(_units[path_begin].common_attack,
-						 _units[cursor.clicked], _units[path_begin])
-						
-						finalize_movement(astar_path.path[-1])
-						
-#						yield(get_tree().create_timer(2), "timeout")
-						
-						## Handing Exp
-						#Connect the add_experience signal
-						_active_unit.connect("add_experience", self, "_on_add_experience")
-						#Wait for the animation to finish
-						yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
+						#Turn comp_stats_active flag on
+						comp_stats_active = true
+						#Turn off attack_active flag
+						attack_active = false
+						#Create a short lag for the inputs
 						yield(get_tree().create_timer(0.2), "timeout")
-						
-						#We need the current level to see if the character has leveled up
-						var cur_level = Experience.experience[_active_unit.char_name]["level"]
-						
-						_active_unit.add_experience("attack", _units[cursor.clicked])
-						
-						#Trying to delay the toggle_player_dark for level up
-						if Experience.experience[_active_unit.char_name]["level"] > cur_level:
-							yield(get_tree().create_timer(2.0), "timeout")
-						
-						turn_finished(_active_unit)
 
-
-		#Holdover code for cancelling attack and sending player unit back to initial starting point
 		#Player can cancel an attack
 		if Input.is_action_just_pressed("ui_cancel"):
 			deselect_player()
@@ -473,7 +447,67 @@ func _input(event):
 			_active_unit.move_player(grid.calculate_map_position(astar_path.path[-1]),
 			grid.calculate_map_position(path_begin), 0.02)
 			finalize_movement(path_begin)
+			$HUD/Comp_Stats.hide_comp_stats()
 		
+	if comp_stats_active == true:
+		if Input.is_action_just_pressed("ui_accept"):
+			if (_attack_cells as Array).has(cursor.clicked):
+				if _units.has(cursor.clicked):
+					if _units[cursor.clicked].playable == false:
+						
+						#keep the offender and defender constant
+						var defender = _units[cursor.clicked]
+						var offender = _units[path_begin]
+						
+						#Turn the input process off
+						self.set_process_input(false)
+						
+						#Hide the comparison stats
+						$HUD/Comp_Stats.hide_comp_stats()
+						
+						#Battle Stats - offender, defender
+						$HUD/Battle_Scene.battle_stats(offender,defender)
+
+						#Battle_Start - offender.attack, defender, offender
+						$HUD/Battle_Scene.battle_start(offender.common_attack,
+						 defender, offender)
+						
+						finalize_movement(astar_path.path[-1])
+
+#						yield(get_tree().create_timer(2), "timeout")
+						
+						## Handing Exp
+						#Connect the add_experience signal
+						_active_unit.connect("add_experience", self, "_on_add_experience")
+						#Wait for the animation to finish
+						yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
+						yield(get_tree().create_timer(0.2), "timeout")
+
+						#We need the current level to see if the character has leveled up
+						var cur_level = Experience.experience[_active_unit.char_name]["level"]
+
+						_active_unit.add_experience("attack", defender)
+
+						#Trying to delay the toggle_player_dark for level up
+						if Experience.experience[_active_unit.char_name]["level"] > cur_level:
+							yield(get_tree().create_timer(2.0), "timeout")
+
+						turn_finished(_active_unit)
+						#turn on input process
+						self.set_process_input(true)
+						#turn off comp_stats_active
+						comp_stats_active = false
+		
+		if Input.is_action_just_pressed("ui_cancel"):
+			deselect_player()
+			attack_active = false
+			_active_unit.position = grid.calculate_map_position(path_begin)
+			_active_unit.move_player(grid.calculate_map_position(astar_path.path[-1]),
+			grid.calculate_map_position(path_begin), 0.02)
+			finalize_movement(path_begin)
+			$HUD/Comp_Stats.hide_comp_stats()
+			comp_stats_active = false
+			
 	#Use item
 	if item_use_active == true:
 		
