@@ -23,7 +23,7 @@ var experience = {
 		"str" : 12,
 		"mag" : 2,
 		"skill" : 10,
-		"speed" : 12,
+		"speed" : 20,
 		"move" : 6,
 		"def" : 7, 
 		"res": 6,
@@ -49,7 +49,7 @@ var experience = {
 		"str" : 10,
 		"mag" : 12,
 		"skill" : 10,
-		"speed" : 10,
+		"speed" : 16,
 		"move" : 6,
 		"def" : 10, 
 		"res": 6,
@@ -189,3 +189,9 @@ func load():
 			printerr("Corrupted data!")
 	else:
 		printerr("No saved data!")
+		
+func speed_diff(attacker_name, defender_name):
+	if experience[attacker_name]["speed"] - experience[defender_name]["speed"] > 3:
+		return true
+	else:
+		return false

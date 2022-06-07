@@ -480,7 +480,16 @@ func _input(event):
 						#Connect the add_experience signal
 						_active_unit.connect("add_experience", self, "_on_add_experience")
 						#Wait for the animation to finish
-						yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
+						
+						#If there's going to be a double attack, yield twice for animation
+						#finished, if not, yield only once
+						if Experience.speed_diff(offender.char_name, defender.char_name):
+#							yield(get_tree().create_timer(5), "timeout")
+							yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
+							yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
+						else:
+							yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
+							
 						yield(get_tree().create_timer(0.2), "timeout")
 
 						#We need the current level to see if the character has leveled up

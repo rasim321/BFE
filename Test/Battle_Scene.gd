@@ -50,10 +50,11 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 	
 	#Getting the defender_tile_stats into a variable: defense, avoid, platform
 	var defender_tile_stats = defender.get_tile_stats()
-	
 	var tile_avoid = defender_tile_stats[1]/100
-	var char_avoid = Experience.experience[defender.char_name]["speed"]/100
 	var tile_defense = defender_tile_stats[0]/100
+	
+	#Character speeds
+	var char_avoid = Experience.experience[defender.char_name]["speed"]/100
 	
 	#For Archers, the platforms will be slightly apart
 	if attacker.war_class == "archer":
@@ -76,68 +77,82 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 	var hit_chance = attack['hit_chance'] - (tile_avoid + char_avoid)
 	var rand_roll = randf()
 	
+	#Check if the speed of the attacker is more than 3 of the defender
+	#In this case, double the attack
+	var att_num = 1
+	if Experience.speed_diff(attacker.char_name, defender.char_name):
+		att_num = 2
 	
-	if hit_chance > rand_roll:
-		print("random roll:", rand_roll)
-		visible = true
-		offender_sprite.frame = 0
-		#plays the animation that is stored in "offender_sprite"
-		offender_sprite.position = attack["position"]
+	for number_of_attacks in range(att_num):
 		
-		offender_sprite.play(attack["name"])
-		defender_sprite.play(defender.defense["name"])
-		#the speed determines when the modulation happens in the defender
-		yield(get_tree().create_timer(attack["speed"]), "timeout")
-		defender_sprite.modulate = Color(4, 4, 4)
-		yield(get_tree().create_timer(0.06), "timeout")
-		defender_sprite.modulate = Color(1,1,1)
-		for i in [0,5,-10,15,-5,+10,-15,0]:
-			yield(get_tree().create_timer(0.005), "timeout")
-			left_battle_platform.rect_position.x += i
-			left_battle_platform.rect_position.y += i
-			right_battle_platform.rect_position.x += i
-			right_battle_platform.rect_position.y += i
-			defender_sprite.position.x += i
-			defender_sprite.position.y += i
+		#Wait for the first animation to finish before the second attack occurs
+		if number_of_attacks == 1:
+			yield(offender_sprite, "animation_finished")
+			offender_sprite.frame = 0
 		
-		#Get the current damage and store it
-		#Subtract the defense amount which is calculated from several factors
-		#(currently only tile)
-		current_damage = (attack["damage"] + attack["weapon_damage"]) - \
-		(Experience.experience[defender.char_name]["def"] + (tile_defense/2)) 
-		
-		print( attack["damage"])
-		print("minus")
-		print(Experience.experience[defender.char_name]["def"]/2)
-		
-		tween.interpolate_property($Battle_Panel/Defender_Health, "value",
-		 defender_health.value, defender_health.value-current_damage, 0.3)
-		tween.start()
-		
-		tween.interpolate_property(self, "current_hp",
-		defender_health.value, defender_health.value-current_damage, 0.3)
-		tween.start()
-		
-		#Actually reduce the health of the defender
-		update_health(defender)
+		if hit_chance > rand_roll:
+			print("random roll:", rand_roll)
+			visible = true
+			offender_sprite.frame = 0
+			#plays the animation that is stored in "offender_sprite"
+			offender_sprite.position = attack["position"]
+			
+			offender_sprite.play(attack["name"])
+			defender_sprite.play(defender.defense["name"])
+			#the speed determines when the modulation happens in the defender
+			yield(get_tree().create_timer(attack["speed"]), "timeout")
+			defender_sprite.modulate = Color(4, 4, 4)
+			yield(get_tree().create_timer(0.06), "timeout")
+			defender_sprite.modulate = Color(1,1,1)
+			for i in [0,5,-10,15,-5,+10,-15,0]:
+				yield(get_tree().create_timer(0.005), "timeout")
+				left_battle_platform.rect_position.x += i
+				left_battle_platform.rect_position.y += i
+				right_battle_platform.rect_position.x += i
+				right_battle_platform.rect_position.y += i
+				defender_sprite.position.x += i
+				defender_sprite.position.y += i
+			
+			#Get the current damage and store it
+			#Subtract the defense amount which is calculated from several factors
+			#(currently only tile)
+			current_damage = (attack["damage"] + attack["weapon_damage"]) - \
+			(Experience.experience[defender.char_name]["def"] + (tile_defense/2)) 
+			
+			print( attack["damage"])
+			print("minus")
+			print(Experience.experience[defender.char_name]["def"]/2)
+			
+			tween.interpolate_property($Battle_Panel/Defender_Health, "value",
+			 defender_health.value, defender_health.value-current_damage, 0.3)
+			tween.start()
+			
+			tween.interpolate_property(self, "current_hp",
+			defender_health.value, defender_health.value-current_damage, 0.3)
+			tween.start()
+			
+			#Actually reduce the health of the defender
+			update_health(defender)
+			
+			
 
-	else:
-		print(rand_roll)
-		visible = true
-		offender_sprite.frame = 0
-		#plays the animation that is stored in "offender_sprite"
-		offender_sprite.position = attack["position"]
-		
-		offender_sprite.play(attack["name"])
-		defender_sprite.play(defender.defense["name"])
-		
-		yield(get_tree().create_timer(attack["speed"]-0.2), "timeout")
-		$Missed_Label.visible = true
-		defender_sprite.play(defender.defense['dodge'])
-		yield(defender_sprite, "animation_finished")
-		$Missed_Label.visible = false
-		defender_sprite.play(defender.defense["name"])
-		
+		else:
+			print(rand_roll)
+			visible = true
+			offender_sprite.frame = 0
+			#plays the animation that is stored in "offender_sprite"
+			offender_sprite.position = attack["position"]
+			
+			offender_sprite.play(attack["name"])
+			defender_sprite.play(defender.defense["name"])
+			
+			yield(get_tree().create_timer(attack["speed"]-0.2), "timeout")
+			$Missed_Label.visible = true
+			defender_sprite.play(defender.defense['dodge'])
+			yield(defender_sprite, "animation_finished")
+			$Missed_Label.visible = false
+			defender_sprite.play(defender.defense["name"])
+			
 	
 	yield(offender_sprite, "animation_finished")
 	offender_sprite.frame = 0
