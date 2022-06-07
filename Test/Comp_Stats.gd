@@ -52,8 +52,13 @@ func comp_stats(offender, defender):
 	
 	#Might
 	#Enemy might is 0 for now but if counterattack is incorporated, this will change
-	player_mgt.text = str((attack["damage"] + attack["weapon_damage"]) - \
-		(Experience.experience[defender.char_name]["def"] + (tile_defense/2)))
+	
+	if Experience.speed_diff(offender.char_name, defender.char_name):
+		player_mgt.text = str((attack["damage"] + attack["weapon_damage"]) - \
+		(Experience.experience[defender.char_name]["def"] + (tile_defense/2))) + str(' X 2')
+	else:
+		player_mgt.text = str((attack["damage"] + attack["weapon_damage"]) - \
+			(Experience.experience[defender.char_name]["def"] + (tile_defense/2)))
 	enemy_mgt.text = str(0)
 	
 	#Hit Chance

@@ -189,7 +189,8 @@ func load():
 			printerr("Corrupted data!")
 	else:
 		printerr("No saved data!")
-		
+
+
 func speed_diff(attacker_name, defender_name):
 	if experience[attacker_name]["speed"] - experience[defender_name]["speed"] > 3:
 		return true
