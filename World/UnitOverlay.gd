@@ -9,6 +9,7 @@ extends TileMap
 # The function fills the tilemap with the cells, giving visual feedback on where a unit can walk.
 func draw(cells: Array,tile_num) -> void:
 	clear()
-	# We loop over the cells and assign them the only tile available in the tileset, tile 0.
+	# We loop over the cells and assign them the tile
 	for cell in cells:
 		set_cellv(cell, tile_num)
+

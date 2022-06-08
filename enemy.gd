@@ -136,8 +136,6 @@ func set_is_selected(value):
 func _set_is_walking(value):
 	_is_walking = value
 	set_process(_is_walking)
-	
-signal walk_finished
 
 func _ready() -> void:
 	$Battle_Node.visible = true
@@ -168,14 +166,11 @@ func _on_ready():
 		
 
 
-func walk_along(path: PoolVector2Array):
-	pass
-
 func move_player(start : Vector2, end : Vector2, speed: float):
 	tween.interpolate_property(self, "position", start, end, speed, tween.TRANS_LINEAR,  tween.EASE_IN_OUT)
 	tween.start()
 	
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	_on_process()
 #	animation_player.play("Idle")
 	
@@ -196,18 +191,18 @@ func choice_menu(value):
 	battle_menu.visible = value
 	battle_menu.grab_click_focus()
 
-func attack_range(cell, type = null):
+func attack_range(self_cell, type = null):
 	var att_range : PoolVector2Array
 #	att_range.append(cell)
 	if type == null:
 		for dir in DIRECTIONS:
-			att_range.append(cell + dir)	
+			att_range.append(self_cell + dir)	
 		return att_range
 	elif type == "archer":
 		for dir in DIRECTIONS:
-			att_range.append(cell + dir*2)
+			att_range.append(self_cell + dir*2)
 		for diag in DIAGONALS:
-			att_range.append(cell+diag)
+			att_range.append(self_cell+diag)
 		return att_range
 
 func get_tile_stats(tile = self.cell):
@@ -311,7 +306,7 @@ func _on_Item_pressed():
 	pass # Replace with function body.
 
 
-func _on_Item_Menu_item_connect(type, name, position):
+func _on_Item_Menu_item_connect(_type, _name, _position):
 	pass
 	
 

@@ -3,6 +3,7 @@ extends Node2D
 export var grid: Resource = preload("res://World/Grid.tres")
 
 onready var _unit_overlay: UnitOverlay = $UnitOverlay
+onready var _enemy_overlay: UnitOverlay = $EnemyOverlay
 onready var cursor = $Cursor
 
 #Navigation
@@ -33,7 +34,7 @@ var _all_enemy_units := {}
 var _playable_units := {}
 var _playable_enemies := {}
 var _active_unit: Enemy
-
+var _highlighted_enemy : Enemy
 
 # Flags
 var selection_active = false
@@ -41,10 +42,12 @@ var attack_active = false
 var player_choice = false
 var player_phase = true
 var comp_stats_active = false
+var enemy_move_display_active = false
 
 # An array for all the obstacles
 var _obstacles = PoolVector2Array()
 var _walkable_cells = PoolVector2Array()
+var _enemy_move_cells = PoolVector2Array()
 var _attack_cells = PoolVector2Array()
 
 # For the flood_fill algorithm
@@ -142,7 +145,7 @@ func _refresh_enemies() -> void:
 		_playable_enemies[e_unit.cell] = e_unit
 
 #we process the drawing of the movement_grid here as well as removing the grid
-func _process(delta):
+func _process(_delta):
 	
 #	movement grid
 	if selection_active == true:
@@ -165,6 +168,12 @@ func _process(delta):
 		_unit_overlay.visible = true
 		update()
 		_unit_overlay.draw(_item_use_cells,1)
+	
+	if enemy_move_display_active == true:
+		_enemy_overlay.visible = true
+		update()
+		_enemy_overlay.draw(_enemy_move_cells, 1)
+
 
 	
 	#Player turn ends
@@ -371,6 +380,7 @@ func _input(event):
 #	attack_active -> if attack is active
 #	player_choice -> if player choice menu is open
 #	item_use_active -> if player item usage is active
+#	enemy_move_display_active -> if enemy move range is active for display
 	"""
 	
 	#If selection is inactive and player clicks:
@@ -385,6 +395,21 @@ func _input(event):
 				if not turn_taken.has(cursor.clicked):
 					select_player(cursor.clicked)
 					yield(get_tree().create_timer(0.2), "timeout")
+		
+		#If enemy is selected, it toggles their attack range
+		#If the enemy is in the _all_enemy_units list
+		if _all_enemy_units.has(cursor.clicked):
+			#And if the enemy_move_display_active flag is false
+			if enemy_move_display_active==false:
+				#Toggle the enemy as highlighted
+				toggle_enemy_move_cells(cursor.clicked)
+				#If the flag is on true (which means an enemy is already highlighted)
+			else:
+				#If the clicked enemy is the one that is highlighted
+				if _highlighted_enemy == _units[cursor.clicked]:
+					#Untoggle the enemy
+					untoggle_enemy_move_cells(cursor.clicked)
+
 			
 	#Cancel select active
 	if selection_active == true and Input.is_action_just_pressed("ui_cancel"):
@@ -671,7 +696,7 @@ func flood_fill(cell, max_distance, for_enemy = false):
 			stack.append(coordinates)
 	
 	return move_array
-		
+	
 
 func select_player(cell):
 	if not _units.has(cell):
@@ -845,6 +870,10 @@ func phase_turner():
 	if player_phase == true:
 		turn_phase.get_node("Turn_Background/Turn_Text").text = "Player Phase"
 	else:
+		#Remove any enemy highlights before the enemy turn begins
+		if enemy_move_display_active:
+			untoggle_enemy_move_cells(_highlighted_enemy.cell)
+		#Turn to enemy phase
 		turn_phase.get_node("Turn_Background/Turn_Text").text = "Enemy Phase"
 	turn_phase.phase_in()
 	yield(get_tree().create_timer(1), "timeout")
@@ -886,6 +915,40 @@ func is_occupied(cell):
 #Gives out all the walkable grids for a unit
 func get_walkable_cells(unit: Enemy, offset = 0) -> Array:
 	return flood_fill(unit.cell, unit.move_range + offset)
+
+
+func toggle_enemy_move_cells(cell):
+	
+	#Flag used: enemy_move_display_active
+	#Variables: _highlighted enemy
+	
+	#If these conditions are met, don't do anything
+	#This is to prevent accidental triggering of the highlight
+	if not _units.has(cell) or attack_active or player_choice or comp_stats_active:
+		return
+
+	#Simple one cell highlight for melee characters
+	match _units[cell].war_class:
+		"swordsman", "axeman", "spearman":
+			_enemy_move_cells = get_walkable_cells(_units[cell],1)
+	#Two cell highlight for archers
+		"archer":
+			_enemy_move_cells = get_walkable_cells(_units[cell],2)
+	#Select the enemy to be highlighted
+	_highlighted_enemy = _units[cell]
+	#Turn the flag to true
+	enemy_move_display_active = true
+
+func untoggle_enemy_move_cells(cell):
+	
+	
+	#Flag used: enemy_move_display_active
+	#Nodes: _enemy_overlay
+	_enemy_move_cells.clear()
+	enemy_move_display_active = false
+	_enemy_overlay.visible = false
+
+
 
 ## Signals ##
 

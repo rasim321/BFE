@@ -75,7 +75,6 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 		right_battle_platform.rect_position.x = 527
 	
 	var hit_chance = attack['hit_chance'] - (tile_avoid + char_avoid)
-	var rand_roll = randf()
 	
 	#Check if the speed of the attacker is more than 3 of the defender
 	#In this case, double the attack
@@ -84,6 +83,8 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 		att_num = 2
 	
 	for number_of_attacks in range(att_num):
+
+		var rand_roll = randf()
 		
 		#Wait for the first animation to finish before the second attack occurs
 		if number_of_attacks == 1:

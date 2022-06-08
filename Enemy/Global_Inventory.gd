@@ -51,7 +51,7 @@ var inventory = {
 	}
 }
 
-func item_setter(char_name, item, position, amount):
+func item_setter(char_name, _item, position, amount):
 	inventory[char_name]["quantity"][position] += amount
 	print("The amount changed to:", inventory[char_name]["quantity"][position])
 	
