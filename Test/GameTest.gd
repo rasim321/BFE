@@ -169,7 +169,10 @@ func _process(_delta):
 		update()
 		_unit_overlay.draw(_item_use_cells,1)
 	
+	#nemey highlight grid
 	if enemy_move_display_active == true:
+		#Uses _enemy_overlay rather than _unit_overlay
+		#This allows us to draw overlapping tiles for players and enemies
 		_enemy_overlay.visible = true
 		update()
 		_enemy_overlay.draw(_enemy_move_cells, 1)
@@ -782,7 +785,6 @@ func finalize_movement(new_cell):
 	player_choice = false
 	
 	#Make the player greyscale and refuse selection
-	
 	_reinitialize()
 
 func select_enemy_unit(cell : Vector2)-> void:
