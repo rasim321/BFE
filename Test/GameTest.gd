@@ -216,8 +216,6 @@ func _process(_delta):
 		#turn the phase
 		phase_turner()
 		
-
-		
 	
 	
 

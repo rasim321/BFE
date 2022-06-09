@@ -164,7 +164,8 @@ func _on_ready():
 	if not Engine.editor_hint:
 		curve = Curve2D.new()
 		
-
+func _on_mouse_entered():
+	print("MOUSE ENTERED")
 
 func move_player(start : Vector2, end : Vector2, speed: float):
 	tween.interpolate_property(self, "position", start, end, speed, tween.TRANS_LINEAR,  tween.EASE_IN_OUT)

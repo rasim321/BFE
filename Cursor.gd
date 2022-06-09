@@ -9,9 +9,14 @@ onready var tile_stats = get_parent().get_node("HUD/Tile_Stats")
 onready var tile_background = get_parent().get_node("Background")
 onready var tile_objects = get_parent().get_node("Objects")
 onready var tile_attributes = $"/root/TileAttributes".tile_attributes
+
 var cell_size = 32
 var coord = Vector2(0,0)
 var clicked = Vector2(0,0)
+
+#Updating Tile Stats
+onready var unit_stats = get_parent().get_node("HUD/Unit_Stats")
+onready var _units_cursor = get_parent()._units
 
 func get_tile_hud(coord):
 	var forests = tile_objects.get_used_cells_by_id(1)
@@ -56,11 +61,25 @@ func get_tile_hud(coord):
 		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Unknown"
 		tile_stats.get_node("Tile_HUD/Avoid_Number").text = "-"
 		tile_stats.get_node("Tile_HUD/Defense_Number").text = "-"
+
 		
+func get_unit_hud(coord):
+	
+	if coord in _units_cursor:
+		
+#			print("ALL ENEMY UNITS", _all_enemy_units_cursor)
+			unit_stats.show_stats()
+			unit_stats.update_stats(_units_cursor[coord].char_name,
+			_units_cursor[coord].health, _units_cursor[coord].max_health,
+			_units_cursor[coord].war_class)
+		
+	else:
+		unit_stats.hide_stats()
 
 func _ready():
 	#makes sure we are processing inputs
 	set_process_input(true)
+
 	
 	
 func coord_debug():
@@ -83,12 +102,14 @@ func _input(event):
 		coord = (get_global_mouse_position()/cell_size).floor()
 		#Tile Stats on the bottom left corner
 		get_tile_hud(coord)
+		get_unit_hud(coord)
 			
 	#Only if debug mode is on do the cursor coordinates show up:
 	if debug_mode == true:
 		coord_debug()
 		
-	if event.is_action_pressed("ui_accept") or event.is_action_pressed("click"):
+	if event.is_action_pressed("ui_accept"):
+#		or event.is_action_pressed("click")
 #		print("cell clicked on:", coord)
 		clicked = coord
 		
