@@ -19,8 +19,12 @@ onready var unit_stats = get_parent().get_node("HUD/Unit_Stats")
 onready var _units_cursor = get_parent()._units
 
 func get_tile_hud(coord):
+	#Forest tiles
 	var forests = tile_objects.get_used_cells_by_id(1)
-
+	
+	#Fort tiles
+	var forts = tile_objects.get_used_cells_by_id(8)
+	
 	var trees = tile_objects.get_used_cells_by_id(2)
 	var cliffs = tile_objects.get_used_cells_by_id(3)
 	
@@ -29,13 +33,13 @@ func get_tile_hud(coord):
 	for water_tiles in tile_background.get_used_cells_by_id(2):
 		waters.append(water_tiles)
 	
+	var erase_from_plains = [forests, forts, trees, cliffs ]
+	
 	#remove the forests, trees, and cliffs from plains
-	for i in forests:
-		plains.erase(i)
-	for j in trees:
-		plains.erase(j)
-	for k in cliffs:
-		plains.erase(k)
+	for i in erase_from_plains:
+		for j in i:
+			plains.erase(j)
+	
 	
 	if coord in forests:
 		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Forest"
@@ -57,6 +61,10 @@ func get_tile_hud(coord):
 		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Cliff"
 		tile_stats.get_node("Tile_HUD/Avoid_Number").text = "-"
 		tile_stats.get_node("Tile_HUD/Defense_Number").text = "-"
+	elif coord in forts:
+		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Fort"
+		tile_stats.get_node("Tile_HUD/Avoid_Number").text = str(tile_attributes["Fort"][1])
+		tile_stats.get_node("Tile_HUD/Defense_Number").text = str(tile_attributes["Fort"][0])
 	else:
 		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Unknown"
 		tile_stats.get_node("Tile_HUD/Avoid_Number").text = "-"
@@ -66,6 +74,7 @@ func get_tile_hud(coord):
 func get_unit_hud(coord):
 	
 	if coord in _units_cursor:
+		if is_instance_valid(_units_cursor[coord]):
 		
 #			print("ALL ENEMY UNITS", _all_enemy_units_cursor)
 			unit_stats.show_stats()

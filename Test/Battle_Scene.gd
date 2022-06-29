@@ -15,7 +15,8 @@ onready var defender_name = $Battle_Panel/Defender_Name_Text
 onready var defender_health = $Battle_Panel/Defender_Health
 onready var defender_hp_num = $Battle_Panel/Defender_HP_Num
 
-#Unit Stats UI
+#Signals
+signal premature_death
 
 
 #Battle_Status
@@ -91,12 +92,15 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 			yield(offender_sprite, "animation_finished")
 			offender_sprite.frame = 0
 		
+		
+		
 		if hit_chance > rand_roll:
 			print("random roll:", rand_roll)
 			visible = true
 			offender_sprite.frame = 0
 			#plays the animation that is stored in "offender_sprite"
 			offender_sprite.position = attack["position"]
+#			defender_sprite.position = Vector2(419,299)
 			
 			offender_sprite.play(attack["name"])
 			defender_sprite.play(defender.defense["name"])
@@ -135,7 +139,13 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 			#Actually reduce the health of the defender
 			update_health(defender)
 			
-			
+			#Check to see if defender dies from first attack
+			if defender.health < 1:
+				#changed it here from break
+				emit_signal("premature_death", true)
+				break
+			else:
+				emit_signal("premature_death", false)
 
 		else:
 			print(rand_roll)
@@ -145,6 +155,7 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 			offender_sprite.position = attack["position"]
 			
 			offender_sprite.play(attack["name"])
+#			defender_sprite.position = Vector2(419,299)
 			defender_sprite.play(defender.defense["name"])
 			
 			yield(get_tree().create_timer(attack["speed"]-0.2), "timeout")
@@ -173,11 +184,15 @@ func battle_stats(offender, defender):
 
 func update_health(defender):
 	defender.health = defender.health - current_damage
+
+func death(defender):
 	if defender.health < 1:
 		defender.queue_free()
+		get_parent().get_parent()._units.erase(defender)
+		
 
 
-var my_number : int = 0
+#var my_number : int = 0
 
 
 

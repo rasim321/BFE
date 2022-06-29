@@ -12,14 +12,14 @@ func _on_ready():
 	effects.visible = false
 	
 	#Overriding common_attack and defense
-	var axe_common_attack = {"name":"axeman_common_attack", "speed": 1.8,
+	var axe_common_attack = {"name":"axeman_common_attack", "speed": 1.2,
 	"damage": int(rand_range(round(Experience.experience[self.char_name]["str"]*0.9),
-	round(Experience.experience[char_name]["str"]*1.1))), "position": Vector2(390,290),
+	round(Experience.experience[char_name]["str"]*1.1))), "position": Vector2(490,270),
 	"hit_chance": 0.75,
 	"weapon_damage" : items[char_name]["equipped"].might
 	}
 	
-	var axe_defense = {"name":"axe_defender", "dodge": "axe_defender"}
+	var axe_defense = {"name":"axe_defender", "dodge": "axe_dodge"}
 	
 	common_attack = axe_common_attack
 	defense = axe_defense

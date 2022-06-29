@@ -36,7 +36,7 @@ var experience = {
 		"str" : 16,
 		"mag" : 1,
 		"skill" : 6,
-		"speed" : 8,
+		"speed" : 6,
 		"move" : 6,
 		"def" : 12, 
 		"res": 6,
@@ -84,7 +84,7 @@ var experience = {
 	"Spiro" : {
 		"level" : 3,
 		"experience" : 0,
-		"hp" : 110,
+		"hp" : 25,
 		"str" : 13,
 		"mag" : 4,
 		"skill" : 12,

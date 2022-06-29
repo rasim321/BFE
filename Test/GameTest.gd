@@ -44,6 +44,9 @@ var player_phase = true
 var comp_stats_active = false
 var enemy_move_display_active = false
 
+# Battle Flags
+var premature_death = false #works with the signal from battle_scene "premature death"
+
 # An array for all the obstacles
 var _obstacles = PoolVector2Array()
 var _walkable_cells = PoolVector2Array()
@@ -182,7 +185,7 @@ func _process(_delta):
 	#Player turn ends
 	if len(turn_taken) == len(_playable_units) and player_phase == true:
 		#immediately switch the player phase so it doesn't keep running
-		player_phase = false
+#		player_phase = false
 		#refresh the enemies before turn taken so that it doesn't trigger the
 #		enemy turn ends phase
 		_refresh_enemies()
@@ -202,7 +205,7 @@ func _process(_delta):
 	#Enemy turn ends
 	if len(turn_taken) == len(_playable_enemies) and player_phase == false:
 		#immediately switch the player phase so it doesn't keep running
-		player_phase = true
+#		player_phase = true
 		
 		#refresh the player first before clearing the turn_taken list
 		_refresh_playable()
@@ -299,9 +302,10 @@ func enemy_action():
 		else:
 			var approachable_units = []
 			for unit_cell in _units.keys():
-				if _units[unit_cell].playable == true:
-					if _notice_range.has(unit_cell):
-						approachable_units.append(_units[unit_cell])
+				if is_instance_valid(_units[unit_cell]):
+					if _units[unit_cell].playable == true:
+						if _notice_range.has(unit_cell):
+							approachable_units.append(_units[unit_cell])
 						
 			if len(approachable_units) != 0:
 				select_enemy_unit(m_unit.cell)
@@ -391,25 +395,28 @@ func _input(event):
 
 	if selection_active == false and Input.is_action_just_pressed("ui_accept"):
 		if _playable_units.has(cursor.clicked):
-			#change made here
-			if attack_active == false and player_choice==false and item_use_active==false:
-				if not turn_taken.has(cursor.clicked):
-					select_player(cursor.clicked)
-					yield(get_tree().create_timer(0.2), "timeout")
+			if player_phase == true:
+				#change made here
+				if attack_active == false and player_choice==false and item_use_active==false:
+					if not turn_taken.has(cursor.clicked):
+						select_player(cursor.clicked)
+						yield(get_tree().create_timer(0.2), "timeout")
 		
 		#If enemy is selected, it toggles their attack range
 		#If the enemy is in the _all_enemy_units list
 		if _all_enemy_units.has(cursor.clicked):
-			#And if the enemy_move_display_active flag is false
-			if enemy_move_display_active==false:
-				#Toggle the enemy as highlighted
-				toggle_enemy_move_cells(cursor.clicked)
-				#If the flag is on true (which means an enemy is already highlighted)
-			else:
-				#If the clicked enemy is the one that is highlighted
-				if _highlighted_enemy == _units[cursor.clicked]:
-					#Untoggle the enemy
-					untoggle_enemy_move_cells(cursor.clicked)
+			if player_phase == true:
+				#And if the enemy_move_display_active flag is false
+				if enemy_move_display_active==false:
+					#Toggle the enemy as highlighted
+					if is_instance_valid(_all_enemy_units[cursor.clicked]):
+						toggle_enemy_move_cells(cursor.clicked)
+					#If the flag is on true (which means an enemy is already highlighted)
+				else:
+					#If the clicked enemy is the one that is highlighted
+					if _highlighted_enemy == _units[cursor.clicked]:
+						#Untoggle the enemy
+						untoggle_enemy_move_cells(cursor.clicked)
 
 			
 	#Cancel select active
@@ -512,7 +519,13 @@ func _input(event):
 						if Experience.speed_diff(offender.char_name, defender.char_name):
 #							yield(get_tree().create_timer(5), "timeout")
 							yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
-							yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
+							#Checking if the defender died from the first attack
+							if premature_death == false:
+								#If not, yield for a second attack animation
+								yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
+							#If premature death was true, wind the flag back to false
+							premature_death = false
+							
 						else:
 							yield($HUD/Battle_Scene/Offender_Sprite, "animation_finished")
 							
@@ -526,7 +539,13 @@ func _input(event):
 						#Trying to delay the toggle_player_dark for level up
 						if Experience.experience[_active_unit.char_name]["level"] > cur_level:
 							yield(get_tree().create_timer(2.0), "timeout")
+						
+						#Check if the defender has to die
+						print("erasing unit", defender.cell)
 
+						
+						$HUD/Battle_Scene.death(defender)
+						
 						turn_finished(_active_unit)
 						#turn on input process
 						self.set_process_input(true)
@@ -665,13 +684,17 @@ func flood_fill(cell, max_distance, for_enemy = false):
 		# Check if the unit is a player or an enemy
 		# and then exclude the opposite team of cells
 		if _units.has(current):
-			if _units[cell].playable == true:
-				if _units[current].playable == false:
-					continue
-			if for_enemy == true:
-				if _units[cell].playable == false:
-					if _units[current].playable == true:
+			#check if unit is dead
+			if is_instance_valid(_units[current]):
+				if _units[cell].playable == true:
+					if _units[current].playable == false:
 						continue
+			if for_enemy == true:
+				#check if unit is dead
+				if is_instance_valid(_units[current]):
+					if _units[cell].playable == false:
+						if _units[current].playable == true:
+							continue
 #			else:
 #				if _units[current].playable == true:
 #					continue
@@ -867,16 +890,19 @@ func turn_finished(unit):
 func phase_turner():
 	turn_phase.visible = true
 	turn_phase.get_node("Turn_Background").modulate = Color(1,1,1,0)
-	if player_phase == true:
+	if player_phase == false:
 		turn_phase.get_node("Turn_Background/Turn_Text").text = "Player Phase"
+		player_phase = true
 	else:
 		#Remove any enemy highlights before the enemy turn begins
 		if enemy_move_display_active:
 			untoggle_enemy_move_cells(_highlighted_enemy.cell)
 		#Turn to enemy phase
 		turn_phase.get_node("Turn_Background/Turn_Text").text = "Enemy Phase"
+		player_phase = false
 	turn_phase.phase_in()
 	yield(get_tree().create_timer(1), "timeout")
+
 	turn_phase.visible = false
 	
 
@@ -924,6 +950,9 @@ func toggle_enemy_move_cells(cell):
 	
 	#If these conditions are met, don't do anything
 	#This is to prevent accidental triggering of the highlight
+	if not is_instance_valid(_units[cell]):
+		return
+	
 	if not _units.has(cell) or attack_active or player_choice or comp_stats_active:
 		return
 
@@ -1075,3 +1104,14 @@ func _on_add_experience(unit, amount):
 #have played in the input function
 
 
+func _on_premature_death():
+	pass
+
+
+
+func _on_Battle_Scene_premature_death(value):
+	""" This connection works with the variable premature death, used
+		to check whether the defender died from the first attack in a 
+		dual attack scenario.
+	"""
+	premature_death = value

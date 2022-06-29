@@ -213,6 +213,7 @@ func get_tile_stats(tile = self.cell):
 	
 	
 	var forests = tile_objects.get_used_cells_by_id(1)
+	var forts = tile_objects.get_used_cells_by_id(8)
 	var trees = tile_objects.get_used_cells_by_id(2)
 	var cliffs = tile_objects.get_used_cells_by_id(3)
 	
@@ -221,13 +222,13 @@ func get_tile_stats(tile = self.cell):
 	for water_tiles in tile_background.get_used_cells_by_id(2):
 		waters.append(water_tiles)
 	
+	#remove the forests, trees, forts, and cliffs from plains
+	var erase_from_plains = [forests, forts, trees, cliffs ]
+	
 	#remove the forests, trees, and cliffs from plains
-	for i in forests:
-		plains.erase(i)
-	for j in trees:
-		plains.erase(j)
-	for k in cliffs:
-		plains.erase(k)
+	for i in erase_from_plains:
+		for j in i:
+			plains.erase(j)
 	
 	if tile in forests:
 		plus_defense = tile_attributes["Forest"][0]
@@ -239,6 +240,11 @@ func get_tile_stats(tile = self.cell):
 		plus_defense = tile_attributes["Plain"][0]
 		plus_avoid = tile_attributes["Plain"][1]
 		platform = tile_platforms["Plain"]
+	
+	elif tile in forts:
+		plus_defense = tile_attributes["Fort"][0]
+		plus_avoid = tile_attributes["Fort"][1]
+		platform = tile_platforms["Fort"]
 
 	else:
 		plus_defense = tile_attributes["Plain"][0]
