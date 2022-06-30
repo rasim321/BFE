@@ -93,6 +93,9 @@ func _ready():
 	#Append tree tiles to _obstacles
 	for tree_tiles in Objects.get_used_cells_by_id(2):
 		_obstacles.append(tree_tiles)
+	#Append the mountain tiles to _obstacles
+	for mountain_tiles in Objects.get_used_cells_by_id(9):
+		_obstacles.append(mountain_tiles)
 	
 	#Set up astar path for navigation
 	astar_path.used_cells = _walkable_cells
@@ -112,7 +115,7 @@ func _reinitialize() -> void:
 	
 		_units[unit.cell] = unit	
 		
-		if unit.player_char == true:
+		if unit.playable == true:
 			_all_playable_units[unit.cell] = unit
 		else:
 			_all_enemy_units[unit.cell] = unit
@@ -273,8 +276,7 @@ func enemy_action():
 		var target := []
 		
 		if len(kill_dict) != 0:
-			target = get_random_target_and_position(kill_dict)
-			
+			target = get_random_target_and_position(kill_dict, m_unit.cell)
 			#Let's check if the kill target does not have an approachable tile
 			#if not, we attack, if it can't be reached, we end the turn
 			if target[1] == Vector2(-99,-99):
@@ -288,7 +290,10 @@ func enemy_action():
 				yield(get_tree().create_timer(1), "timeout")
 				
 				#Finalize Movement
-				finalize_movement(astar_path.path[-1])
+				if len(astar_path.path) == 0:
+					finalize_movement(m_unit.cell)
+				else:
+					finalize_movement(astar_path.path[-1])
 		#		Fight the Player Unit chosen at random
 				#Battle Stats - offender, defender
 				$HUD/Battle_Scene.battle_stats(m_unit,target[0])
@@ -297,6 +302,11 @@ func enemy_action():
 				 target[0], m_unit)
 				yield(get_tree().create_timer(4), "timeout")
 		#					#Once attack is successful we finalize the movement
+				
+				#kill defender if hp = 0
+				$HUD/Battle_Scene.death(target[0])
+
+				
 				deselect_player()
 				turn_finished(m_unit)
 		else:
@@ -334,45 +344,73 @@ func generate_kill_dict(unit, war_class = null):
 		"swordsman", "axeman", "spearman":
 			#We get the unit's move cells plus one offset for the attack range
 			_walkable_cells = get_walkable_cells(unit, 1)
+
 			#where we store the cells from which to attack
 			
 			#For each unit in the field
 			for killable in _units.keys():
+				
 				var _killable_cells = []
-				#we check if the unit is standing in the attack range
-				if _walkable_cells.has(killable):
-					#and if the unit is a player unit
-					if _units[killable].playable == true:
-						#if true, for each cell surrounding that unit 
-						for cell in flood_fill(_units[killable].cell,1):
-							#if the cell is in the attack range and not the unit's own cell
-							#Turn on for_enemy in flood_fill so that enemies can't surpass players
-							if cell in flood_fill(unit.cell, unit.move_range, true) and cell != _units[killable].cell:
-								#we add it to the _killable_cells list
-								_killable_cells.append(cell)
-						#the key value pair is then formed
-						kill_dict[_units[killable]] = _killable_cells
+				if is_instance_valid(_units[killable]) == true:
+					#we check if the unit is standing in the attack range
+					if _walkable_cells.has(killable):
+
+						#and if the unit is a player unit
+						if _units[killable].playable == true:
+
+							for cell in flood_fill(_units[killable].cell, 1):
+								#if the cell is in the attack range and not the unit's own cell
+								#Turn on for_enemy in flood_fill so that enemies can't surpass players
+								
+								if not _all_enemy_units.has(cell):
+									
+									if cell in flood_fill(unit.cell, unit.move_range, true) and cell != _units[killable].cell:
+										#we add it to the _killable_cells list
+										_killable_cells.append(cell)
+									
+							for direction in DIRECTIONS:
+								if _units[killable].cell + direction == unit.cell:
+									_killable_cells.append(_units[killable].cell + direction)
+
+
+							#the key value pair is then formed
+							
+							kill_dict[_units[killable]] = _killable_cells
+
 					
 		#For ranged characters
 		"archer":
 			#we get the normal move range
-			_walkable_cells = get_walkable_cells(unit)
+			_walkable_cells = get_walkable_cells(unit, 0, true)
+
 			#for each unit
 			for killable in _units.keys():
 				#if it's a player character
 				if _units[killable].playable == true:
-					var _killable_cells = []
-					#we get the range of vulnerability of the player character
-					var vulnerable_range = _units[killable].attack_range(killable, "archer")
-					#for each cell in the vulnerable_range
-					for cell in vulnerable_range:
-						#if the archer can walk there
-						if cell in _walkable_cells:
-							#we add it to the _killable_cells list
-							_killable_cells.append(cell)
-					#create the key value pair
-					kill_dict[_units[killable]] = _killable_cells
-	
+					#Check if unit is dead
+					if is_instance_valid(_units[killable]) == true:
+						
+						var _killable_cells = []
+						#we get the range of vulnerability of the player character
+						var vulnerable_range = _units[killable].attack_range(killable, "archer")
+						#for each cell in the vulnerable_range
+						for cell in vulnerable_range:
+							#if the archer can walk there
+							
+							#If archer is already standing there
+							if cell == unit.cell:
+								_killable_cells.append(cell)
+									
+							if cell in _walkable_cells:
+								#we add it to the _killable_cells list
+								_killable_cells.append(cell)
+							#Or if the archer is already standing on the killable cell
+							else:
+								if cell == unit.cell:
+									_killable_cells.append(cell)
+						#create the key value pair
+						kill_dict[_units[killable]] = _killable_cells
+		
 	return kill_dict
 	
 
@@ -828,9 +866,9 @@ func select_enemy_unit(cell : Vector2)-> void:
 	
 
 func _move_enemy_unit(new_cell: Vector2) -> void:
-	if is_occupied(new_cell) or not new_cell in _walkable_cells or _units.has(new_cell):
-		print("enemy unit can't move there")
-		return
+#	if is_occupied(new_cell) or not new_cell in _walkable_cells or _units.has(new_cell):
+#		print("enemy unit can't move there")
+#		return
 	deselect_player()
 	astar_path.used_cells = _walkable_cells
 	astar_path._add_points()
@@ -939,8 +977,8 @@ func is_occupied(cell):
 		
 		
 #Gives out all the walkable grids for a unit
-func get_walkable_cells(unit: Enemy, offset = 0) -> Array:
-	return flood_fill(unit.cell, unit.move_range + offset)
+func get_walkable_cells(unit: Enemy, offset = 0, for_enemy = false) -> Array:
+	return flood_fill(unit.cell, unit.move_range + offset, for_enemy)
 
 
 func toggle_enemy_move_cells(cell):
@@ -991,7 +1029,7 @@ func deselect_player():
 	#Hide unit stats
 	unit_stats.hide_stats()
 	
-func get_random_target_and_position(dict):
+func get_random_target_and_position(dict, unit_cell):
 	var a = dict.keys()
 	#get a random target to attack
 	a = a[randi() % a.size()]
@@ -1002,11 +1040,17 @@ func get_random_target_and_position(dict):
 	if not dict[a].empty():
 		#check for obstacles and units
 		for i in dict[a]:
-			if (_units.has(i) or (_obstacles as Array).has(i)):
-				continue
-			else:
-				#if no obstacles or units, append
+			#check if enemy unit is already standing on the attack cell
+			if i == unit_cell:
+				#if so, append it to the killable cell list
 				b.append(i)
+			#if not, look for other criteria
+			else:
+				if (_units.has(i) or (_obstacles as Array).has(i)):
+					continue
+				else:
+					#if no obstacles or units, append
+					b.append(i)
 	#no attacklable_cells so b is empty
 	else:
 		b = []
@@ -1027,7 +1071,7 @@ func get_random_target_and_position(dict):
 		#if not empty
 		else:
 			#recursion to find another unit to attack
-			return get_random_target_and_position(dict)
+			return get_random_target_and_position(dict, unit_cell)
 		
 	
 func closest_cell_to_move(enemy_unit, move_range, player_unit):
@@ -1104,14 +1148,25 @@ func _on_add_experience(unit, amount):
 #have played in the input function
 
 
-func _on_premature_death():
-	pass
-
-
-
 func _on_Battle_Scene_premature_death(value):
 	""" This connection works with the variable premature death, used
 		to check whether the defender died from the first attack in a 
 		dual attack scenario.
 	"""
 	premature_death = value
+
+
+func _on_Battle_Scene_remove_unit(defender):
+	
+	#Remove from all dictionaries
+	if _all_enemy_units.has(defender):
+		_all_enemy_units.erase(defender)
+	if _all_playable_units.has(defender):
+		_all_playable_units.erase(defender)
+	if _playable_enemies.has(defender):
+		_playable_enemies.erase(defender)
+	if _playable_units.has(defender):
+		_playable_units.erase(defender)
+	if _units.has(defender):
+		_units.erase(defender)
+

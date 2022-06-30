@@ -15,7 +15,8 @@ var tile_attributes = {
 	"Obstacle": [0,0], #defense, avoid
 	"Unknown": [0,0], #defense, avoid
 	"Cliff": [0,0], #defense, avoid
-	"Tree": [0,0] #defense, avoid
+	"Tree": [0,0], #defense, avoid
+	"Mountain": [0,0] #defense, avoid
 }
 
 var tile_platforms ={

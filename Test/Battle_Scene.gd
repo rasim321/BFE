@@ -65,14 +65,20 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 		left_battle_platform.rect_position.x -= 20
 		
 		#For the attacker, we are feeding the tile texture from the gameboard -- from the last cell
-		right_battle_platform.texture = attacker.get_tile_stats(get_parent().get_parent().astar_path.path[-1])[2][1].texture
+		if len(get_parent().get_parent().astar_path.path) != 0:
+			right_battle_platform.texture = attacker.get_tile_stats(get_parent().get_parent().astar_path.path[-1])[2][1].texture
+		else:
+			right_battle_platform.texture = attacker.get_tile_stats(attacker.cell)[2][1].texture
 		right_battle_platform.rect_position.x += 20
 	else:
 		
 		left_battle_platform.texture = defender_tile_stats[2][0].texture
 		left_battle_platform.rect_position.x = 194
 		#For the attacker, we are feeding the tile texture from the gameboard -- from the last cell
-		right_battle_platform.texture = attacker.get_tile_stats(get_parent().get_parent().astar_path.path[-1])[2][1].texture
+		if len(get_parent().get_parent().astar_path.path) != 0:
+			right_battle_platform.texture = attacker.get_tile_stats(get_parent().get_parent().astar_path.path[-1])[2][1].texture
+		else:
+			right_battle_platform.texture = attacker.get_tile_stats(attacker.cell)[2][1].texture
 		right_battle_platform.rect_position.x = 527
 	
 	var hit_chance = attack['hit_chance'] - (tile_avoid + char_avoid)
@@ -185,16 +191,14 @@ func battle_stats(offender, defender):
 func update_health(defender):
 	defender.health = defender.health - current_damage
 
+signal remove_unit
+
 func death(defender):
 	if defender.health < 1:
 		defender.queue_free()
 		get_parent().get_parent()._units.erase(defender)
+		emit_signal("remove_unit", defender)
 		
-
-
-#var my_number : int = 0
-
-
 
 func _on_Tween_tween_step(object, key, elapsed, value):
 	if current_hp > 0:

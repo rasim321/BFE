@@ -27,13 +27,15 @@ func get_tile_hud(coord):
 	
 	var trees = tile_objects.get_used_cells_by_id(2)
 	var cliffs = tile_objects.get_used_cells_by_id(3)
+	var mountains = tile_objects.get_used_cells_by_id(9)
 	
 	var plains = tile_background.get_used_cells_by_id(0)
 	var waters = tile_background.get_used_cells_by_id(1)
+	
 	for water_tiles in tile_background.get_used_cells_by_id(2):
 		waters.append(water_tiles)
 	
-	var erase_from_plains = [forests, forts, trees, cliffs ]
+	var erase_from_plains = [forests, forts, trees, cliffs, mountains ]
 	
 	#remove the forests, trees, and cliffs from plains
 	for i in erase_from_plains:
@@ -45,6 +47,10 @@ func get_tile_hud(coord):
 		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Forest"
 		tile_stats.get_node("Tile_HUD/Avoid_Number").text = str(tile_attributes["Forest"][1])
 		tile_stats.get_node("Tile_HUD/Defense_Number").text = str(tile_attributes["Forest"][0])
+	elif coord in mountains:
+		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Mountain"
+		tile_stats.get_node("Tile_HUD/Avoid_Number").text = "-"
+		tile_stats.get_node("Tile_HUD/Defense_Number").text = "-"
 	elif coord in waters:
 		tile_stats.get_node("Tile_HUD/Tile_Type").text = "Water"
 		tile_stats.get_node("Tile_HUD/Avoid_Number").text = "-"

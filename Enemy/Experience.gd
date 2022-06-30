@@ -6,7 +6,7 @@ var experience = {
 	"Mizan" : {
 		"level" : 2,
 		"experience" : 90,
-		"hp" : 100,
+		"hp" : 170,
 		"str" : 14,
 		"mag" : 12,
 		"skill" : 10,
@@ -19,7 +19,7 @@ var experience = {
 	"Sonru" : {
 		"level" : 2,
 		"experience" : 0,
-		"hp" : 90,
+		"hp" : 7,
 		"str" : 12,
 		"mag" : 2,
 		"skill" : 10,
@@ -45,7 +45,7 @@ var experience = {
 	"Basel" : {
 		"level" : 3,
 		"experience" : 0,
-		"hp" : 100,
+		"hp" : 60,
 		"str" : 10,
 		"mag" : 12,
 		"skill" : 10,
@@ -71,7 +71,7 @@ var experience = {
 	"Arlo" : {
 		"level" : 3,
 		"experience" : 0,
-		"hp" : 100,
+		"hp" : 70,
 		"str" : 10,
 		"mag" : 12,
 		"skill" : 10,

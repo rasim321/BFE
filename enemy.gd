@@ -45,7 +45,7 @@ export var player_char : bool
 onready var items = $"/root/GlobalInventory".inventory
 onready var item_action = $Battle_Node/Item_Menu/Item_Action_Bg
 
-
+#390, 308
 #Attacks
 onready var common_attack = {"name":"goon_common_attack", "speed": 1.4,
 "damage": 
