@@ -3,6 +3,7 @@ var health_potion = preload("res://Enemy/health_potion.tres")
 var iron_sword = preload("res://Enemy/iron_sword.tres")
 var iron_axe = preload("res://Enemy/iron_axe.tres")
 var iron_bow = preload("res://Enemy/iron_bow.tres")
+var iron_katana = preload("res://Enemy/iron_katana.tres")
 
 
 var inventory = {
@@ -47,6 +48,12 @@ var inventory = {
 		"items" : [iron_sword, health_potion],
 		"quantity" : [1, 3],
 		"equipped" : iron_sword,
+		"eq_position" : 0
+	},
+	"Ryn" : {
+		"items" : [iron_katana, health_potion, health_potion],
+		"quantity" : [1, 3, 2],
+		"equipped" : iron_katana,
 		"eq_position" : 0
 	}
 }

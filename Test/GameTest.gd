@@ -341,7 +341,7 @@ func generate_kill_dict(unit, war_class = null):
 
 	match war_class:
 		#For general one cell attack units:
-		"swordsman", "axeman", "spearman":
+		"swordsman", "axeman", "spearman", "assassin":
 			#We get the unit's move cells plus one offset for the attack range
 			_walkable_cells = get_walkable_cells(unit, 1)
 
@@ -996,7 +996,7 @@ func toggle_enemy_move_cells(cell):
 
 	#Simple one cell highlight for melee characters
 	match _units[cell].war_class:
-		"swordsman", "axeman", "spearman":
+		"swordsman", "axeman", "spearman", "assassin":
 			_enemy_move_cells = get_walkable_cells(_units[cell],1)
 	#Two cell highlight for archers
 		"archer":
@@ -1136,8 +1136,9 @@ func _on_Item_engaged(staged_item, staged_position, action_type):
 	finalize_movement(astar_path.path[-1])
 
 func _on_add_experience(unit, amount):
+#	
 	exp_stats.update_exp(unit, amount)
-	
+
 ## Notes:
 
 # player choice = player choice is when the choice menu is active for the player

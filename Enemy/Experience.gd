@@ -93,6 +93,19 @@ var experience = {
 		"def" : 12, 
 		"res": 8,
 		"notice" : 5
+	},
+	"Ryn" : {
+		"level" : 4,
+		"experience" : 0,
+		"hp" : 39,
+		"str" : 15,
+		"mag" : 5,
+		"skill" : 14,
+		"speed" : 13,
+		"move" : 5,
+		"def" : 11, 
+		"res": 7,
+		"notice" : 4
 	}
 }
 
@@ -103,7 +116,6 @@ var growth = {
 		"mag" : 0.5,
 		"skill" : 0.5,
 		"speed" : 0.5,
-		"move" : 0.5,
 		"def" : 0.5, 
 		"res": 0.5,
 	},
@@ -113,7 +125,6 @@ var growth = {
 		"mag" : 0.5,
 		"skill" : 0.5,
 		"speed" : 0.5,
-		"move" : 0.5,
 		"def" : 0.5, 
 		"res": 0.5,
 	},
@@ -123,7 +134,6 @@ var growth = {
 		"mag" : 0.5,
 		"skill" : 0.5,
 		"speed" : 0.5,
-		"move" : 0.5,
 		"def" : 0.5, 
 		"res": 0.5,
 	},
@@ -133,7 +143,6 @@ var growth = {
 		"mag" : 0.5,
 		"skill" : 0.5,
 		"speed" : 0.5,
-		"move" : 0.5,
 		"def" : 0.5, 
 		"res": 0.5,
 	},
@@ -143,7 +152,6 @@ var growth = {
 		"mag" : 0.5,
 		"skill" : 0.5,
 		"speed" : 0.5,
-		"move" : 0.5,
 		"def" : 0.5, 
 		"res": 0.5,
 	},
@@ -153,7 +161,6 @@ var growth = {
 		"mag" : 0.5,
 		"skill" : 0.5,
 		"speed" : 0.5,
-		"move" : 0.5,
 		"def" : 0.5, 
 		"res": 0.5,
 	},
@@ -163,8 +170,16 @@ var growth = {
 		"mag" : 0.5,
 		"skill" : 0.5,
 		"speed" : 0.5,
-		"move" : 0.5,
 		"def" : 0.5, 
+		"res": 0.5,
+	},
+	"Ryn" : {
+		"hp" : 0.8,
+		"str" : 0.7,
+		"mag" : 0.3,
+		"skill" : 0.6,
+		"speed" : 0.65,
+		"def" : 0.6, 
 		"res": 0.5,
 	}
 }

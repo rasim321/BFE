@@ -57,6 +57,23 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 	#Character speeds
 	var char_avoid = Experience.experience[defender.char_name]["speed"]/100
 	
+	#For Ryn, the offender sprite will be scaled down
+	#This is to adjust the sprite size for some characters
+	if attack.has("scale"):
+		$Offender_Sprite.scale = attack["scale"]
+		
+	#For Ryn, as defender, the scale ahs to be reduced
+	if defender.defense.has("scale"):
+		$Defender_Sprite.scale = defender.defense["scale"]
+	
+	#Defender positioning
+	match defender.war_class: 
+		"swordsman":
+			$Defender_Sprite.position = Vector2(410,320)
+		"archer", "axeman", "spearman":
+			$Defender_Sprite.position = Vector2(411,300)
+
+	
 	#For Archers, the platforms will be slightly apart
 	if attacker.war_class == "archer":
 		#The first texture is the defender's (on the left)
@@ -111,18 +128,31 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 			offender_sprite.play(attack["name"])
 			defender_sprite.play(defender.defense["name"])
 			#the speed determines when the modulation happens in the defender
-			yield(get_tree().create_timer(attack["speed"]), "timeout")
-			defender_sprite.modulate = Color(4, 4, 4)
-			yield(get_tree().create_timer(0.06), "timeout")
-			defender_sprite.modulate = Color(1,1,1)
-			for i in [0,5,-10,15,-5,+10,-15,0]:
-				yield(get_tree().create_timer(0.005), "timeout")
-				left_battle_platform.rect_position.x += i
-				left_battle_platform.rect_position.y += i
-				right_battle_platform.rect_position.x += i
-				right_battle_platform.rect_position.y += i
-				defender_sprite.position.x += i
-				defender_sprite.position.y += i
+			
+			var time_counter : float = 0
+			for mod_time in attack["speed"]:
+				
+				yield(get_tree().create_timer(mod_time - time_counter), "timeout")
+
+				defender_sprite.modulate = Color(4, 4, 4)
+				yield(get_tree().create_timer(0.06), "timeout")
+				time_counter += mod_time + 0.06
+				
+				defender_sprite.modulate = Color(1,1,1)
+				for i in [0,5,-10,15,-5,+10,-15,0]:
+					yield(get_tree().create_timer(0.005), "timeout")
+				
+
+					left_battle_platform.rect_position.x += i
+					left_battle_platform.rect_position.y += i
+					right_battle_platform.rect_position.x += i
+					right_battle_platform.rect_position.y += i
+					defender_sprite.position.x += i
+					defender_sprite.position.y += i
+				time_counter += 0.035
+
+			
+			
 			
 			#Get the current damage and store it
 			#Subtract the defense amount which is calculated from several factors
