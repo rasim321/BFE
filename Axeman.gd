@@ -12,7 +12,7 @@ func _on_ready():
 	effects.visible = false
 	
 	#Overriding common_attack and defense
-	var axe_common_attack = {"name":"axeman_common_attack", "speed": 1.2,
+	var axe_common_attack = {"name":"axeman_common_attack", "speed": [1.2],
 	"damage": int(rand_range(round(Experience.experience[self.char_name]["str"]*0.9),
 	round(Experience.experience[char_name]["str"]*1.1))), "position": Vector2(490,270),
 	"hit_chance": 0.75,
@@ -23,6 +23,7 @@ func _on_ready():
 	
 	common_attack = axe_common_attack
 	defense = axe_defense
+	crit_attack = axe_common_attack
 
 	
 	self.cell = grid.calculate_grid_position(position)

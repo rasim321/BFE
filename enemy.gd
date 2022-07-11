@@ -47,13 +47,18 @@ onready var item_action = $Battle_Node/Item_Menu/Item_Action_Bg
 
 #390, 308
 #Attacks
-onready var common_attack = {"name":"goon_common_attack", "speed": 1.4,
+onready var common_attack = {"name":"goon_common_attack", "speed": [1.4],
 "damage": 
  int(rand_range(round(Experience.experience[self.char_name]["str"]*0.9),
 round(Experience.experience[char_name]["str"]*1.1))), "position": Vector2(390,308),
 "hit_chance": 0.85,
 "weapon_damage" : items[char_name]["equipped"].might}
 
+onready var crit_attack = {"name" : "goon_common_crit", "speed": [0.8, 2.0],
+"damage": int(rand_range(round(Experience.experience[self.char_name]["str"]*1.5),
+round(Experience.experience[char_name]["str"]*1.6))),"position": Vector2(500,308),
+"hit_chance": 1,
+"weapon_damage" : items[char_name]["equipped"].might}
 
 #"weapon_damage" : items[char_name]["equipped"].might
 #Defense

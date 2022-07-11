@@ -5,7 +5,7 @@ const FILE_NAME = "res://experience_data.json"
 var experience = {
 	"Mizan" : {
 		"level" : 2,
-		"experience" : 90,
+		"experience" : 0,
 		"hp" : 170,
 		"str" : 14,
 		"mag" : 12,
@@ -14,12 +14,13 @@ var experience = {
 		"move" : 6,
 		"def" : 10, 
 		"res": 6,
+		"crit" : 99,
 		"notice" : 6
 	},
 	"Sonru" : {
 		"level" : 2,
 		"experience" : 0,
-		"hp" : 7,
+		"hp" : 70,
 		"str" : 12,
 		"mag" : 2,
 		"skill" : 10,
@@ -27,6 +28,7 @@ var experience = {
 		"move" : 6,
 		"def" : 7, 
 		"res": 6,
+		"crit": 0,
 		"notice" : 6
 	},
 	"Boltu" : {
@@ -40,6 +42,7 @@ var experience = {
 		"move" : 6,
 		"def" : 12, 
 		"res": 6,
+		"crit": 0,
 		"notice" : 6
 	},
 	"Basel" : {
@@ -53,6 +56,7 @@ var experience = {
 		"move" : 6,
 		"def" : 10, 
 		"res": 6,
+		"crit": 0,
 		"notice" : 6
 	},
 	"Chowdhury" : {
@@ -66,6 +70,7 @@ var experience = {
 		"move" : 6,
 		"def" : 12, 
 		"res": 6,
+		"crit": 0,
 		"notice" : 6
 	},
 	"Arlo" : {
@@ -79,6 +84,7 @@ var experience = {
 		"move" : 6,
 		"def" : 10, 
 		"res": 6,
+		"crit": 0,
 		"notice" : 6
 	},
 	"Spiro" : {
@@ -92,6 +98,7 @@ var experience = {
 		"move" : 5,
 		"def" : 12, 
 		"res": 8,
+		"crit": 0,
 		"notice" : 5
 	},
 	"Ryn" : {
@@ -105,6 +112,7 @@ var experience = {
 		"move" : 5,
 		"def" : 11, 
 		"res": 7,
+		"crit": 0,
 		"notice" : 4
 	}
 }

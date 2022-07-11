@@ -43,6 +43,7 @@ var player_choice = false
 var player_phase = true
 var comp_stats_active = false
 var enemy_move_display_active = false
+var player_moving = false
 
 # Battle Flags
 var premature_death = false #works with the signal from battle_scene "premature death"
@@ -106,6 +107,8 @@ func _ready():
 
 func _reinitialize() -> void:
 	_units.clear()
+	_all_enemy_units.clear()
+	_all_playable_units.clear()
 	
 	for child in get_children():
 		var unit := child as Enemy
@@ -300,7 +303,23 @@ func enemy_action():
 				#Battle_Start - offender.attack, defender, offender, offender_cell
 				$HUD/Battle_Scene.battle_start(m_unit.common_attack,
 				 target[0], m_unit)
-				yield(get_tree().create_timer(4), "timeout")
+				
+				#If it is a double attack:
+				if Experience.speed_diff(m_unit.char_name, target[0].char_name):
+					#And the defender doesn't die
+					if premature_death == false:
+						#yield for longer
+						yield(get_tree().create_timer(7), "timeout")
+					#if defender dies
+					else:
+						#yield for only 4 seconds
+						yield(get_tree().create_timer(4), "timeout")
+						#switch the premature flag back to false
+						premature_death = false
+				#For single attack
+				else:
+					#Yield for 4 seconds only
+					yield(get_tree().create_timer(4), "timeout")
 		#					#Once attack is successful we finalize the movement
 				
 				#kill defender if hp = 0
@@ -415,6 +434,7 @@ func generate_kill_dict(unit, war_class = null):
 	
 
 
+
 func _input(event):
 	
 	"""
@@ -423,7 +443,9 @@ func _input(event):
 #	attack_active -> if attack is active
 #	player_choice -> if player choice menu is open
 #	item_use_active -> if player item usage is active
+#   comp_stats_active -> comparative stats before an attack
 #	enemy_move_display_active -> if enemy move range is active for display
+#	player_moving -> if player is currently moving #used for deactivating menu
 	"""
 	
 	#If selection is inactive and player clicks:
@@ -539,9 +561,15 @@ func _input(event):
 						#Battle Stats - offender, defender
 						$HUD/Battle_Scene.battle_stats(offender,defender)
 
-						#Battle_Start - offender.attack, defender, offender
-						$HUD/Battle_Scene.battle_start(offender.common_attack,
+						#Critical attack check
+						var crit_chance = Experience.experience[offender.char_name]["crit"]
+						if randf() < crit_chance:
+							$HUD/Battle_Scene.battle_start(offender.crit_attack,
 						 defender, offender)
+						else:
+						#Battle_Start - offender.attack, defender, offender
+							$HUD/Battle_Scene.battle_start(offender.common_attack,
+							 defender, offender)
 						
 						finalize_movement(astar_path.path[-1])
 
@@ -672,7 +700,27 @@ func _input(event):
 				selection_active = false
 				player_choice = true
 				item_selection_active = false
+	
+	#Menu options
+	if Input.is_action_just_pressed("ui_accept") and all_flags_inactive() == true:
+		if not _all_enemy_units.has(cursor.clicked) and not _all_playable_units.has(cursor.clicked):
+				if player_phase == true:
+					if all_flags_inactive() == true:
+						self.set_process_input(false)
+						$HUD/Menu.activate_menu()
+		
+	if Input.is_action_just_pressed("ui_cancel"):
+		if $HUD/Menu.visible == true:
+			self.set_process_input(true)
+			$HUD/Menu.visible = false
 
+func all_flags_inactive(exception = null):
+	# Checks if all flags are currently inactive:
+	if selection_active == false and attack_active == false and player_choice == false \
+	and item_use_active == false and comp_stats_active == false and player_moving==false:
+		return true
+	else:
+		return false
 
 
 
@@ -783,9 +831,10 @@ func select_player(cell):
 func _clear_active_unit() -> void:
 	_active_unit = null
 	_walkable_cells.clear()
-	
+
+
 func _move_active_unit(new_cell: Vector2) -> void:
-	
+	player_moving = true #NEW
 	var temp_units = _units
 	temp_units.erase(_active_unit.cell)
 	## DISABLED FOR NOW TO TEST##
@@ -824,6 +873,7 @@ func _move_active_unit(new_cell: Vector2) -> void:
 		dir = p
 	_active_unit.choice_menu(true)
 	player_choice = true
+	player_moving = false
 	
 	
 func finalize_movement(new_cell):
@@ -1113,12 +1163,13 @@ func closest_cell_to_move(enemy_unit, move_range, player_unit):
 #	after all the cells are checked, return the closest_cell
 	return closest_cell
 
-var item_selection_active = false
+
 
 func enemy_item_selected():
 	item_selection_active = true
-	
-	
+
+#Item variables to be moved later
+var item_selection_active = false
 var item_use_active = false
 var _item_use_cells = []
 var staged_item_current : String # Health Potion
@@ -1146,8 +1197,9 @@ func _on_add_experience(unit, amount):
 	
 # turn_finished(unit): Turn finished is called twice in the code. Once after 
 # receiving the signal wait selected, and another time after the battle animations
-#have played in the input function
+# have played in the input function
 
+#Signal Connections
 
 func _on_Battle_Scene_premature_death(value):
 	""" This connection works with the variable premature death, used
@@ -1170,4 +1222,16 @@ func _on_Battle_Scene_remove_unit(defender):
 		_playable_units.erase(defender)
 	if _units.has(defender):
 		_units.erase(defender)
+	_reinitialize()
 
+
+#This comes from the menu when the player wants to end turn
+#It automatically triggers enemy action
+func _on_Menu_force_phase_turn():
+	_refresh_enemies()
+	turn_taken.clear()
+	_refresh_playable()
+	phase_turner()
+	enemy_action()
+	self.set_process_input(true)
+	pass # Replace with function body.

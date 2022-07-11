@@ -16,7 +16,7 @@ func _on_ready():
 	Experience.save()
 	
 	#overriding common_attack and defense
-	var archer_common_attack = {"name":"archer_common_attack", "speed": 2.5,
+	var archer_common_attack = {"name":"archer_common_attack", "speed": [2.5],
 	"damage": int(rand_range(round(Experience.experience[self.char_name]["str"]*0.9),
 	round(Experience.experience[char_name]["str"]*1.1))), "position": Vector2(570,300),
 	"hit_chance": 0.85,
@@ -26,6 +26,7 @@ func _on_ready():
 	
 	common_attack = archer_common_attack
 	defense = archer_defense
+	crit_attack = archer_common_attack
 	
 	
 	self.cell = grid.calculate_grid_position(position)

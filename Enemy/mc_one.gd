@@ -33,7 +33,7 @@ func _on_ready():
 	
 	common_attack = mc_one_common_attack
 	defense = mc_one_defense
-	
+	crit_attack = mc_one_common_attack
 	
 	self.cell = grid.calculate_grid_position(position)
 	self.position = grid.calculate_map_position(cell)

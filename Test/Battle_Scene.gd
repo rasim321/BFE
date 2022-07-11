@@ -194,17 +194,20 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 #			defender_sprite.position = Vector2(419,299)
 			defender_sprite.play(defender.defense["name"])
 			
-			yield(get_tree().create_timer(attack["speed"]-0.2), "timeout")
+			yield(get_tree().create_timer(attack["speed"][0]-0.2), "timeout")
 			$Missed_Label.visible = true
 			defender_sprite.play(defender.defense['dodge'])
 			yield(defender_sprite, "animation_finished")
 			$Missed_Label.visible = false
 			defender_sprite.play(defender.defense["name"])
-			
-	
+
+		
 	yield(offender_sprite, "animation_finished")
 	offender_sprite.frame = 0
 	visible = false
+
+	
+
 
 func battle_stats(offender, defender):
 	offender_name.text = offender.char_name
