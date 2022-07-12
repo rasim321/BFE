@@ -24,6 +24,7 @@ onready var tile_background = get_parent().get_node("Background")
 onready var tile_objects = get_parent().get_node("Objects")
 onready var tile_attributes = $"/root/TileAttributes".tile_attributes
 onready var tile_platforms = $"/root/TileAttributes".tile_platforms
+onready var tile_scenery = $"/root/TileAttributes".tile_scenery
 #Random Number generator
 var rng = RandomNumberGenerator.new()
 
@@ -215,6 +216,7 @@ func get_tile_stats(tile = self.cell):
 	var plus_avoid : int
 	var plus_defense : int
 	var platform : Array
+	var scenery: Scenery
 	
 	
 	var forests = tile_objects.get_used_cells_by_id(1)
@@ -239,24 +241,28 @@ func get_tile_stats(tile = self.cell):
 		plus_defense = tile_attributes["Forest"][0]
 		plus_avoid = tile_attributes["Forest"][1]
 		platform = tile_platforms["Forest"]
+		scenery = tile_scenery["Forest"]
 	
 		
 	elif tile in plains:
 		plus_defense = tile_attributes["Plain"][0]
 		plus_avoid = tile_attributes["Plain"][1]
 		platform = tile_platforms["Plain"]
+		scenery = tile_scenery["Plain"]
 	
 	elif tile in forts:
 		plus_defense = tile_attributes["Fort"][0]
 		plus_avoid = tile_attributes["Fort"][1]
 		platform = tile_platforms["Fort"]
+		scenery = tile_scenery["Plain"]
 
 	else:
 		plus_defense = tile_attributes["Plain"][0]
 		plus_avoid = tile_attributes["Plain"][1]
 		platform = tile_platforms["Plain"]
+		scenery = tile_scenery["Plain"]
 
-	return [plus_defense, plus_avoid, platform]
+	return [plus_defense, plus_avoid, platform, scenery]
 		
 
 func effect_triggered(effect = null):

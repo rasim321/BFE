@@ -4,8 +4,8 @@ class_name Astar_Path
 const DIRECTIONS = [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]
 
 onready var astar = AStar2D.new()
-onready var gametest = get_parent()
-onready var enemy = get_node("Enemy")
+#onready var gametest = get_parent()
+#onready var enemy = get_node("Enemy")
 var used_cells : PoolVector2Array
 var start : Vector2
 var end : Vector2
@@ -27,6 +27,13 @@ func _ready():
 
 func _add_points():
 	for point in used_cells:
+		if get_parent().player_phase == true:
+			if get_parent()._all_enemy_units.has(point):
+				continue
+		else:
+			if get_parent()._all_playable_units.has(point):
+				continue
+				
 		astar.add_point(grid.as_index(point), point, 1.0)
 	
 func _connect_points():

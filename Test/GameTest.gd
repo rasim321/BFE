@@ -324,6 +324,7 @@ func enemy_action():
 				
 				#kill defender if hp = 0
 				$HUD/Battle_Scene.death(target[0])
+				_reinitialize()
 
 				
 				deselect_player()
@@ -367,6 +368,7 @@ func generate_kill_dict(unit, war_class = null):
 			#where we store the cells from which to attack
 			
 			#For each unit in the field
+			
 			for killable in _units.keys():
 				
 				var _killable_cells = []
@@ -1207,6 +1209,7 @@ func _on_Battle_Scene_premature_death(value):
 		dual attack scenario.
 	"""
 	premature_death = value
+	_reinitialize()
 
 
 func _on_Battle_Scene_remove_unit(defender):

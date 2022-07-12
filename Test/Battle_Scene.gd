@@ -6,6 +6,9 @@ onready var defender_sprite = $Defender_Sprite
 onready var left_battle_platform = $left_platform
 onready var right_battle_platform = $right_platform
 
+#Scenery
+onready var scenery = $Battle_Background
+
 #Stats
 onready var offender_name = $Battle_Panel/Offender_Name_Text
 onready var offender_health = $Battle_Panel/Offender_Health
@@ -57,12 +60,15 @@ func battle_start(attack: Dictionary, defender: Enemy, attacker: Enemy):
 	#Character speeds
 	var char_avoid = Experience.experience[defender.char_name]["speed"]/100
 	
+	#Scenery 
+	scenery.texture = defender_tile_stats[3].texture
+	
 	#For Ryn, the offender sprite will be scaled down
 	#This is to adjust the sprite size for some characters
 	if attack.has("scale"):
 		$Offender_Sprite.scale = attack["scale"]
 		
-	#For Ryn, as defender, the scale ahs to be reduced
+	#For Ryn, as defender, the scale has to be reduced
 	if defender.defense.has("scale"):
 		$Defender_Sprite.scale = defender.defense["scale"]
 	
@@ -228,7 +234,7 @@ signal remove_unit
 
 func death(defender):
 	if defender.health < 1:
-		defender.queue_free()
+		defender.free()
 		get_parent().get_parent()._units.erase(defender)
 		emit_signal("remove_unit", defender)
 		
